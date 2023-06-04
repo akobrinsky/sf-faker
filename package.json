@@ -11,5 +11,8 @@
   "devDependencies": {
     "@faker-js/faker": "^8.0.1",
     "lodash": "^4.17.21"
+  },
+  "dependencies": {
+    "@fast-csv/format": "^4.3.5"
   }
 }

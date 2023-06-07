@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "oppies": "node src/create-oppies.js"
+    "build-accounts": "node src/create-accounts.js",
+    "build-oppies": "node src/create-oppies.js"
   },
   "author": "",
   "license": "ISC",

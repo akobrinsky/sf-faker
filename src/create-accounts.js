@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { format } from '@fast-csv/format';
 import { createWriteStream } from 'fs';
 import companies from './real-companies.js';
-import { USER_IDS } from './utils.js';
+import { USER_IDS, memoizeUnique } from './utils.js';
 
 let memoizedCompanies = null
 
@@ -15,23 +15,6 @@ const seedAccountsHelper = (amount, arr, seed) => {
   }
   memoizedCompanies = null
 };
-
-function memoizeUnique(callback) {
-  let store = {};
-  return function(...args) {
-    let result;
-    do {
-      result = callback(...args);
-      const key = JSON.stringify(args) + JSON.stringify(result);
-      if (!store.hasOwnProperty(key)) {
-        store[key] = result;
-        break;
-      }
-    } while (true);
-    return result;
-  };
-}
-
 
 function createRandomAccount() {
   const accountTypes = [

@@ -9,7 +9,7 @@
     "build-accounts": "node src/create-accounts.js",
     "build-oppies": "node src/create-oppies.js"
   },
-  "author": "",
+  "author": "Aryeh Kobrinsky",
   "license": "ISC",
   "devDependencies": {
     "@faker-js/faker": "^8.0.1",

@@ -67,8 +67,8 @@ const accountsLookup = {
   three: []
 }
 
-const TOTAL_ACCOUNTS = 1000;
-const TOTAL_ACCOUNT_TWO = TOTAL_ACCOUNTS * 0.4;
+const TOTAL_ACCOUNTS = 500;
+const TOTAL_ACCOUNT_TWO = TOTAL_ACCOUNTS * 0.5;
 const TOTAL_ACCOUNT_THREE = TOTAL_ACCOUNTS * 0.3;
 
 seedAccountsHelper(TOTAL_ACCOUNTS, accountsLookup.one, 0);
@@ -100,6 +100,3 @@ for (const file of ['one', 'two', 'three']) {
   
   stream.end();
 }
-// console.log(accountsLookup.one[99].website);
-// console.log(accountsLookup.two[99].website);
-// console.log(accountsLookup.three[99].website);

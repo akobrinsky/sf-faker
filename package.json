@@ -7,14 +7,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-accounts": "node src/create-accounts.js",
-    "build-oppies": "node src/create-oppies.js"
+    "build-oppies-and-accounts": "node src/create-oppies.js && node src/create-contacts.js"
   },
   "author": "Aryeh Kobrinsky",
   "license": "ISC",
   "devDependencies": {
     "@faker-js/faker": "^8.0.1",
     "@fast-csv/format": "^4.3.5",
-    "@fast-csv/parse": "^4.3.6"
+    "@fast-csv/parse": "^4.3.6",
+    "luxon": "^3.3.0"
   },
   "dependencies": {
     "dotenv": "^16.1.4"

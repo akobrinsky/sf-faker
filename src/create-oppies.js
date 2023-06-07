@@ -1,13 +1,13 @@
+import { USER_IDS } from './constants';
 import { faker } from '@faker-js/faker';
 import { format } from '@fast-csv/format';
-import { parse, parseFile } from '@fast-csv/parse';
-import fs from 'fs'
-import { USER_IDS } from './constants';
+import { parseFile } from '@fast-csv/parse';
+import { createWriteStream } from 'fs';
 
 const ingestFileName = 'accounts-export.csv';
-const oppyCSV = fs.createWriteStream('oppies.csv');
+const oppyCSV = createWriteStream('oppies.csv');
 
-const stream = format({ headers:true });
+const stream = format({ headers: true });
 stream.pipe(oppyCSV);
 
 // Build up account id and names from SF account export
@@ -15,8 +15,8 @@ const accountIdsAndNames = [];
 parseFile(ingestFileName)
   .on('error', (error) => console.error(error))
   .on('data', (row) => {
-    const [ID, NAME] = row
-    const numberOfOpps = faker.number.int({ min: 1, max: 3 })
+    const [ID, NAME] = row;
+    const numberOfOpps = faker.number.int({ min: 1, max: 3 });
     if (ID !== 'ID') accountIdsAndNames.push(buildOpps(numberOfOpps, NAME, ID));
   })
   .on('end', (rowCount) => console.log(rowCount));
@@ -30,7 +30,12 @@ const buildDumbName = (name) =>
 
 function buildOpps(amount, accountName, accountId) {
   const result = [];
-  const types = ['Existing Customer - Upgrade', 'Existing Customer - Replacement', 'Existing Customer - Downgrade', 'New Customer'];
+  const types = [
+    'Existing Customer - Upgrade',
+    'Existing Customer - Replacement',
+    'Existing Customer - Downgrade',
+    'New Customer',
+  ];
   const stages = [
     { weight: 1, value: 'Prospecting' },
     { weight: 1, value: 'Qualification' },
@@ -41,7 +46,9 @@ function buildOpps(amount, accountName, accountId) {
     { weight: 1, value: 'Closed Lost' },
   ];
   for (let i = 0; i < amount; i += 1) {
-    const closeDate = faker.date.between({ from: '1/23/2021', to: '12/20/23' }).toISOString()
+    const closeDate = faker.date
+      .between({ from: '1/23/2021', to: '12/20/23' })
+      .toISOString();
     stream.write({
       accountId,
       ownerId: faker.helpers.arrayElement(USER_IDS),

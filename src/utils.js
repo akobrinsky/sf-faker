@@ -1,4 +1,17 @@
 import { faker } from '@faker-js/faker';
+import dotenv  from "dotenv"
+dotenv.config()
+
+const user1 = process.env.USER_ONE
+const user2 = process.env.USER_TWO
+
+const USER_IDS = [user1]
+
+if (user2) USER_IDS.push(user2)
+
+export {
+  USER_IDS
+}
 
 const buildDumbName = (name) =>
   `${name} - ${faker.word.preposition()} ${faker.word.noun()}`

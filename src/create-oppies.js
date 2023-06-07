@@ -1,10 +1,10 @@
-import { USER_IDS } from './constants';
 import { faker } from '@faker-js/faker';
 import { format } from '@fast-csv/format';
 import { parseFile } from '@fast-csv/parse';
 import { createWriteStream } from 'fs';
+import { USER_IDS } from './utils.js';
 
-const ingestFileName = 'accounts-export.csv';
+const ingestFileName = 'extracted-accounts.csv';
 const oppyCSV = createWriteStream('oppies.csv');
 
 const stream = format({ headers: true });
@@ -21,12 +21,14 @@ parseFile(ingestFileName)
   })
   .on('end', (rowCount) => console.log(rowCount));
 
-const buildDumbName = (name) =>
-  `${name} - ${faker.word.preposition()} ${faker.word.noun()}`
+const buildDumbName = (name) => {
+  const extraOppyTitle = `${faker.word.preposition()} ${faker.word.noun()}`
     .toLowerCase()
     .split(' ')
     .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
     .join(' ');
+  return `${name} - ${extraOppyTitle}`;
+};
 
 function buildOpps(amount, accountName, accountId) {
   const result = [];
@@ -51,8 +53,8 @@ function buildOpps(amount, accountName, accountId) {
       .toISOString();
     stream.write({
       accountId,
-      ownerId: faker.helpers.arrayElement(USER_IDS),
       closeDate,
+      ownerId: faker.helpers.arrayElement(USER_IDS),
       name: buildDumbName(accountName),
       type: faker.helpers.arrayElement(types),
       stage: faker.helpers.weightedArrayElement(stages),

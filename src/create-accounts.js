@@ -2,8 +2,35 @@ import { faker } from '@faker-js/faker';
 import { format } from '@fast-csv/format';
 import { createWriteStream } from 'fs';
 import companies from './real-companies.js';
-import { USER_IDS } from './constants.js';
+import { USER_IDS } from './utils.js';
 
+let buildUniqueCompanies = null
+
+const seedAccountsHelper = (amount, arr, seed) => {
+  faker.seed(seed);
+  buildUniqueCompanies = memoizeUnique(faker.helpers.arrayElement)
+
+  for (let i = 0; i < amount; i += 1) {
+    arr.push(createRandomAccount());
+  }
+  buildUniqueCompanies = null
+};
+
+function memoizeUnique(callback) {
+  let store = {};
+  return function(...args) {
+    let result;
+    do {
+      result = callback(...args);
+      const key = JSON.stringify(args) + JSON.stringify(result);
+      if (!store.hasOwnProperty(key)) {
+        store[key] = result;
+        break;
+      }
+    } while (true);
+    return result;
+  };
+}
 
 
 function createRandomAccount() {
@@ -14,7 +41,7 @@ function createRandomAccount() {
     'Technology Partner',
     'Other',
   ];
-  const company = faker.helpers.arrayElement(companies);
+  const company = buildUniqueCompanies(companies);
   const ratingTypes = ['Hot', 'Warm', 'Cold'];
   const slaTypes = ['Gold', 'Silver', 'Platinum', 'Bronze'];
   const CustomerPriority__c = ['High', 'Low', 'Medium'];
@@ -29,6 +56,7 @@ function createRandomAccount() {
   return {
     name: company.name,
     website: company.domain,
+    ownerId: faker.helpers.arrayElement(USER_IDS), 
     type: faker.helpers.arrayElement(accountTypes),
     rating: faker.helpers.arrayElement(ratingTypes),
     phone: faker.phone.number('###-###-###'),
@@ -49,12 +77,6 @@ function createRandomAccount() {
   };
 }
 
-const seedAccountsHelper = (amount, arr, seed) => {
-  faker.seed(seed);
-  for (let i = 0; i < amount; i += 1) {
-    arr.push(createRandomAccount());
-  }
-};
 
 const accountsLookup = {
   one: [],
@@ -95,3 +117,6 @@ for (const file of ['one', 'two', 'three']) {
   
   stream.end();
 }
+// console.log(accountsLookup.one[99].website);
+// console.log(accountsLookup.two[99].website);
+// console.log(accountsLookup.three[99].website);

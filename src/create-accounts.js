@@ -2,8 +2,10 @@ import { faker } from '@faker-js/faker';
 import { format } from '@fast-csv/format';
 import { createWriteStream } from 'fs';
 import companies from './real-companies.js';
+import { USER_IDS } from './constants.js';
 
-const USER_IDS = []
+
+
 function createRandomAccount() {
   const accountTypes = [
     'Prospect',
@@ -30,20 +32,20 @@ function createRandomAccount() {
     type: faker.helpers.arrayElement(accountTypes),
     rating: faker.helpers.arrayElement(ratingTypes),
     phone: faker.phone.number('###-###-###'),
-    employees: faker.number.int({ min: 100, max: 3000 }),
-    annualRevenue: faker.finance.amount({
-      min: 1000000,
-      max: 20000000,
-      dec: 0,
-    }),
     sla: faker.helpers.arrayElement(slaTypes),
     UpsellOpportunity__c: faker.helpers.arrayElement(UpsellOpportunity__c),
     CustomerPriority__c: faker.helpers.arrayElement(CustomerPriority__c),
+    employees: faker.number.int({ min: 100, max: 3000 }),
     billingStreet,
     billingCity,
     billingState,
     billingPostalCode,
     billingCountry,
+    annualRevenue: faker.finance.amount({
+      min: 1000000,
+      max: 20000000,
+      dec: 0,
+    }),
   };
 }
 
@@ -60,7 +62,7 @@ const accountsLookup = {
   three: []
 }
 
-const TOTAL_ACCOUNTS = 500;
+const TOTAL_ACCOUNTS = 1000;
 const TOTAL_ACCOUNT_TWO = TOTAL_ACCOUNTS * 0.4;
 const TOTAL_ACCOUNT_THREE = TOTAL_ACCOUNTS * 0.3;
 

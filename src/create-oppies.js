@@ -2,14 +2,13 @@ import { faker } from '@faker-js/faker';
 import { format } from '@fast-csv/format';
 import { parse, parseFile } from '@fast-csv/parse';
 import fs from 'fs'
+import { USER_IDS } from './constants';
 
 const ingestFileName = 'accounts-export.csv';
-const userIds = ['0058c000009k79eAAA']
-
 const oppyCSV = fs.createWriteStream('oppies.csv');
+
 const stream = format({ headers:true });
 stream.pipe(oppyCSV);
-
 
 // Build up account id and names from SF account export
 const accountIdsAndNames = [];
@@ -45,7 +44,7 @@ function buildOpps(amount, accountName, accountId) {
     const closeDate = faker.date.between({ from: '1/23/2021', to: '12/20/23' }).toISOString()
     stream.write({
       accountId,
-      ownerId: faker.helpers.arrayElement(userIds),
+      ownerId: faker.helpers.arrayElement(USER_IDS),
       closeDate,
       name: buildDumbName(accountName),
       type: faker.helpers.arrayElement(types),

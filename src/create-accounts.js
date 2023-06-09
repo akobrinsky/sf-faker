@@ -4,6 +4,8 @@ import { createWriteStream } from 'fs';
 import companies from './real-companies.js';
 import { USER_IDS, memoizeUnique } from './utils.js';
 
+const MEMOIZE = false
+
 let memoizedCompanies = null
 
 const seedAccountsHelper = (amount, arr, seed) => {
@@ -24,7 +26,7 @@ function createRandomAccount() {
     'Technology Partner',
     'Other',
   ];
-  const company = memoizedCompanies(companies);
+  const company = MEMOIZE ?  memoizedCompanies(companies) : faker.helpers.arrayElement(companies)
   const ratingTypes = ['Hot', 'Warm', 'Cold'];
   const slaTypes = ['Gold', 'Silver', 'Platinum', 'Bronze'];
   const CustomerPriority__c = ['High', 'Low', 'Medium'];

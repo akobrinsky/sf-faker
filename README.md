@@ -63,7 +63,7 @@ Upload the generated `accounts-one.csv` to SF
 >`accounts-two.csv` - matches 30% to accounts-one
 
 ## Export Accounts to build Contacts and Opportunites
-__Important: name the export `exported-accounts.csv`__
+__Important: name the export `extracted-accounts.csv`__
 
 ![Screenshot from 2023-06-08 12-00-04](https://github.com/akobrinsky/sf-faker/assets/22509914/b02dbe07-06a0-4584-800c-58e4b7704e15)  
 Select the columns we need, order is importance here!

@@ -27,8 +27,7 @@ sudo java -jar target/dataloader-58.0.2.jar
 ```
 
 You should now see this GUI
-![data loader screen](dataloader.png)
-
+![Screenshot from 2023-06-08 10-41-45](https://github.com/akobrinsky/sf-faker/assets/22509914/982c3f14-1277-4ca3-b015-a767e91e9384)
 
 ## .env
 For each SF dev instance you'd like to setup, you'll want to set these two env variables. This is to emulate having different account owners as much as we can. Each account will get random assignment of these id's. 
@@ -66,9 +65,10 @@ Upload the generated `accounts-one.csv` to SF
 ## Export Accounts to build Contacts and Opportunites
 __Important: name the export `exported-accounts.csv`__
 
-![data loader screen](sf-table-selector.png)  
+![Screenshot from 2023-06-08 12-00-04](https://github.com/akobrinsky/sf-faker/assets/22509914/b02dbe07-06a0-4584-800c-58e4b7704e15)  
 Select the columns we need, order is importance here!
 ```sql
+
 select id, name, website from account
 ```
 ## Create Contacts and Opportunities

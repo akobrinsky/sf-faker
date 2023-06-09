@@ -97,6 +97,7 @@ for (const file of ['one', 'two', 'three']) {
   accountsLookup[file].forEach((account) => {
     stream.write(account);
   });
+  console.log(`${TOTAL_ACCOUNTS} created and written to ${fileName}`);
   
   stream.end();
 }

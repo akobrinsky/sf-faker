@@ -62,7 +62,6 @@ function createRandomAccount() {
   };
 }
 
-
 const accountsLookup = {
   one: [],
   two: [],
@@ -88,7 +87,6 @@ seedAccountsHelper(
   accountsLookup.three,
   TOTAL_ACCOUNT_THREE
 );
-
 
 for (const file of ['one', 'two', 'three']) {
   const fileName = `accounts-${file}.csv`

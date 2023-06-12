@@ -1,16 +1,21 @@
-import dotenv  from "dotenv"
-dotenv.config()
+import { parseFile } from '@fast-csv/parse';
+import dotenv from 'dotenv';
+import fs from 'fs'
+dotenv.config();
 
-const user1 = process.env.USER_ONE_ID
-const user2 = process.env.USER_TWO_ID
+const user1 = process.env.USER_ONE_ID;
+const user2 = process.env.USER_TWO_ID;
 
-const USER_IDS = [user1]
+const SF_APP_URL = process.env.SF_APP_URL;
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
-if (user2) USER_IDS.push(user2)
+const USER_IDS = [user1];
+
+if (user2) USER_IDS.push(user2);
 
 const memoizeUnique = (callback) => {
   let store = {};
-  return function(...args) {
+  return function (...args) {
     let result;
     do {
       result = callback(...args);
@@ -22,9 +27,27 @@ const memoizeUnique = (callback) => {
     } while (true);
     return result;
   };
+};
+
+const processAndWriteFile = (data, fileName) => {
+  console.log(data);
+  const foo = fs.readFileSync(data)
+  // console.log(JSON.parse(data));
+  parseFile(data)
+  .on('error', (error) => console.error(error))
+  .on('data', (row) => {
+    // const [ID, NAME] = row;
+    // const numberOfOpps = faker.number.int({ min: 1, max: 2 });
+    // numberOfOppiesCreated += numberOfOpps
+    // if (ID !== 'ID') accountIdsAndNames.push(buildOpps(numberOfOpps, NAME, ID));
+    console.log(row);
+  })
+  .on('end', (rowCount) => {
+    console.log(`${rowCount} account rows processed`);
+    console.log(
+      // `finished creating opportunities: ${numberOfOppiesCreated} created`
+    );
+  });
 }
 
-export {
-  USER_IDS,
-  memoizeUnique
-}
+export { USER_IDS, memoizeUnique, SF_APP_URL, ACCESS_TOKEN, processAndWriteFile };

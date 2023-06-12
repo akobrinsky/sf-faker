@@ -32,29 +32,29 @@ function createRandomAccount() {
   const CustomerPriority__c = ['High', 'Low', 'Medium'];
   const UpsellOpportunity__c = ['Maybe', 'No', 'Yes'];
 
-  const billingStreet = faker.location.streetAddress(false);
-  const billingCity = faker.location.city();
-  const billingState = faker.location.state();
-  const billingPostalCode = faker.location.zipCode();
-  const billingCountry = 'United States';
+  const BillingStreet = faker.location.streetAddress(false);
+  const BillingCity = faker.location.city();
+  const BillingState = faker.location.state();
+  const BillingPostalCode = faker.location.zipCode();
+  const BillingCountry = 'United States';
 
   return {
-    name: company.name,
-    website: company.domain,
-    ownerId: faker.helpers.arrayElement(USER_IDS), 
-    type: faker.helpers.arrayElement(accountTypes),
-    rating: faker.helpers.arrayElement(ratingTypes),
-    phone: faker.phone.number('###-###-###'),
-    sla: faker.helpers.arrayElement(slaTypes),
+    Name: company.name,
+    Website: company.domain,
+    OwnerId: faker.helpers.arrayElement(USER_IDS), 
+    Type: faker.helpers.arrayElement(accountTypes),
+    Rating: faker.helpers.arrayElement(ratingTypes),
+    Phone: faker.phone.number('###-###-###'),
+    SLA__c: faker.helpers.arrayElement(slaTypes),
     UpsellOpportunity__c: faker.helpers.arrayElement(UpsellOpportunity__c),
     CustomerPriority__c: faker.helpers.arrayElement(CustomerPriority__c),
-    employees: faker.number.int({ min: 100, max: 3000 }),
-    billingStreet,
-    billingCity,
-    billingState,
-    billingPostalCode,
-    billingCountry,
-    annualRevenue: faker.finance.amount({
+    NumberOfEmployees: faker.number.int({ min: 100, max: 3000 }),
+    BillingStreet,
+    BillingCity,
+    BillingState,
+    BillingPostalCode,
+    BillingCountry,
+    AnnualRevenue: faker.finance.amount({
       min: 1000000,
       max: 20000000,
       dec: 0,
@@ -68,11 +68,11 @@ const accountsLookup = {
   three: []
 }
 
-const TOTAL_ACCOUNTS = 500;
+const TOTAL_ACCOUNTS = 20;
 const TOTAL_ACCOUNT_TWO = TOTAL_ACCOUNTS * 0.5;
 const TOTAL_ACCOUNT_THREE = TOTAL_ACCOUNTS * 0.3;
 
-seedAccountsHelper(TOTAL_ACCOUNTS, accountsLookup.one, 0);
+seedAccountsHelper(TOTAL_ACCOUNTS, accountsLookup.one, 100);
 seedAccountsHelper(TOTAL_ACCOUNT_TWO, accountsLookup.two, 0);
 seedAccountsHelper(TOTAL_ACCOUNT_THREE, accountsLookup.three, 0);
 

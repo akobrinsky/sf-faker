@@ -1,9 +1,7 @@
 import { format } from '@fast-csv/format';
-import { parseStream } from '@fast-csv/parse';
 import { parseString } from '@fast-csv/parse';
-import { parseFile } from '@fast-csv/parse';
+import { createWriteStream } from 'fs';
 import dotenv from 'dotenv';
-import fs from 'fs'
 dotenv.config();
 
 const user1 = process.env.USER_ONE_ID;
@@ -33,18 +31,50 @@ const memoizeUnique = (callback) => {
 };
 
 const processAndWriteFile = (data, fileName) => {
-  // const stream = format({ headers: true });
-  // stream.pipe(fileName);
-  
-  parseString(data)
-  .on('error', (error) => console.error(error))
-  .on('data', (row) => {
-    const [ID, ERROR, FOO] = row;
-    console.log(ID, ERROR, FOO);
-  })
-  .on('end', (rowCount) => {
-    console.log(`${rowCount} account rows processed`);
-  });
+  const stream = format({ headers: true });
+  stream.pipe(createWriteStream(fileName));
+
+  parseString(data, { headers: true })
+    .on('error', (error) => console.error(error))
+    .on('data', (row) => stream.write(row))
+    .on('end', (rowCount) => {
+      stream.end();
+      console.log(`${rowCount} account rows processed`);
+    });
+};
+
+function writeContacts(amount, accountId, url) {
+  for (let i = 0; i < amount; i += 1) {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    const email =
+      firstName.toLowerCase()[0] + lastName.toLowerCase() + `@${url}`;
+    const birthdate = faker.date
+      .between({
+        from: DateTime.local().minus({ years: 55 }),
+        to: DateTime.local().minus({ years: 30 }),
+      })
+      .toISOString();
+    const payload = {
+      accountId,
+      birthdate,
+      firstName,
+      lastName,
+      email,
+      assistantName: faker.person.fullName(),
+      title: faker.person.jobTitle(),
+      phone: faker.phone.number('###-###-####'),
+      assistantPhone: faker.phone.number('###-###-####'),
+    };
+    stream.write(payload);
+  }
 }
 
-export { USER_IDS, memoizeUnique, SF_APP_URL, ACCESS_TOKEN, processAndWriteFile };
+export {
+  USER_IDS,
+  memoizeUnique,
+  SF_APP_URL,
+  ACCESS_TOKEN,
+  processAndWriteFile,
+};

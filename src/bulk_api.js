@@ -100,15 +100,12 @@ const failedResults = async (id) => {
       headers: {
         Authorization: authBearer,
         'Content-Type': 'text/csv',
-        accept: 'application/json'
       },
-      responseType: 'blob',
     })
     return foo
   } catch (err) {
     console.log(err);
   }
-
 };
 
 
@@ -126,4 +123,4 @@ const failedResults = async (id) => {
 // console.log(objets.fields.map(obj => obj.name));
 // console.log(ACCESS_TOKEN);
 const failed = await failedResults('750Dn000007Xo0h')
-processAndWriteFile(failed.data)
+processAndWriteFile(failed.data, 'errors.csv')

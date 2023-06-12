@@ -72,16 +72,12 @@ const insertAccounts = async (jobResult) => {
 };
 
 const listObjectInfo = async (object) => {
-  const url = SF_APP_URL + '/' + `/services/data/v58.0/sobjects/${object}/describe`;
-  const authBearer = `Bearer ${ACCESS_TOKEN}`;
-  console.log(url);
+  const url = `/services/data/v58.0/sobjects/${object}/describe`;
   return fetch(url, {
     method: 'GET',
     duplex: 'half',
     headers: {
-      Authorization: authBearer,
       'Content-Type': 'text/csv',
-      Accept: 'application/json',
     },
   })
     .then((res) => {
@@ -93,21 +89,18 @@ const listObjectInfo = async (object) => {
     .catch((err) => console.log(err));
 };
 const failedResults = async (id) => {
-  const url = SF_APP_URL + `/services/data/v58.0/jobs/ingest/${id}/failedResults/`;
-  const authBearer = `Bearer ${ACCESS_TOKEN}`;
+  const url = `/services/data/v58.0/jobs/ingest/${id}/failedResults/`;
   try {
     const foo = await axios.get(url, {
       headers: {
-        Authorization: authBearer,
         'Content-Type': 'text/csv',
       },
-    })
-    return foo
+    });
+    return foo;
   } catch (err) {
     console.log(err);
   }
 };
-
 
 // const jobResult = await createJob();
 // console.log(jobResult);
@@ -122,5 +115,5 @@ const failedResults = async (id) => {
 // console.log(res);
 // console.log(objets.fields.map(obj => obj.name));
 // console.log(ACCESS_TOKEN);
-const failed = await failedResults('750Dn000007Xo0h')
-processAndWriteFile(failed.data, 'errors.csv')
+const { data } = await failedResults('750Dn000007Xo0h');
+processAndWriteFile(data, 'errors.csv');

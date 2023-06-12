@@ -2,13 +2,22 @@ import { format } from '@fast-csv/format';
 import { parseString } from '@fast-csv/parse';
 import { createWriteStream } from 'fs';
 import dotenv from 'dotenv';
+import axios from 'axios';
 dotenv.config();
+
 
 const user1 = process.env.USER_ONE_ID;
 const user2 = process.env.USER_TWO_ID;
 
 const SF_APP_URL = process.env.SF_APP_URL;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+
+const authBearer = `Bearer ${ACCESS_TOKEN}`;
+
+axios.defaults.baseURL = SF_APP_URL
+axios.defaults.headers = {
+  Authorization: authBearer,
+}
 
 const USER_IDS = [user1];
 

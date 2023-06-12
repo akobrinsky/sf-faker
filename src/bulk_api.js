@@ -99,24 +99,16 @@ const failedResults = async (id) => {
     const foo = await axios.get(url, {
       headers: {
         Authorization: authBearer,
+        'Content-Type': 'text/csv',
+        accept: 'application/json'
       },
       responseType: 'blob',
-      'Content-Type': 'multipart/form-data'
     })
     return foo
   } catch (err) {
     console.log(err);
   }
-  // return fetch(url, {
-  //   headers: {
-  //   },
-  // })
-  //   // .then((res) => res.json())
-  //   .then((res) => {
-  //     console.log(res);
-  //     return res;
-  //   })
-  //   .catch((err) => console.log(err));
+
 };
 
 
@@ -134,5 +126,4 @@ const failedResults = async (id) => {
 // console.log(objets.fields.map(obj => obj.name));
 // console.log(ACCESS_TOKEN);
 const failed = await failedResults('750Dn000007Xo0h')
-console.log(typeof failed.data);
-// processAndWriteFile(failed.data)
+processAndWriteFile(failed.data)

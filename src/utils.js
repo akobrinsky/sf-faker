@@ -1,3 +1,6 @@
+import { format } from '@fast-csv/format';
+import { parseStream } from '@fast-csv/parse';
+import { parseString } from '@fast-csv/parse';
 import { parseFile } from '@fast-csv/parse';
 import dotenv from 'dotenv';
 import fs from 'fs'
@@ -30,23 +33,17 @@ const memoizeUnique = (callback) => {
 };
 
 const processAndWriteFile = (data, fileName) => {
-  console.log(data);
-  const foo = fs.readFileSync(data)
-  // console.log(JSON.parse(data));
-  parseFile(data)
+  // const stream = format({ headers: true });
+  // stream.pipe(fileName);
+  
+  parseString(data)
   .on('error', (error) => console.error(error))
   .on('data', (row) => {
-    // const [ID, NAME] = row;
-    // const numberOfOpps = faker.number.int({ min: 1, max: 2 });
-    // numberOfOppiesCreated += numberOfOpps
-    // if (ID !== 'ID') accountIdsAndNames.push(buildOpps(numberOfOpps, NAME, ID));
-    console.log(row);
+    const [ID, ERROR, FOO] = row;
+    console.log(ID, ERROR, FOO);
   })
   .on('end', (rowCount) => {
     console.log(`${rowCount} account rows processed`);
-    console.log(
-      // `finished creating opportunities: ${numberOfOppiesCreated} created`
-    );
   });
 }
 

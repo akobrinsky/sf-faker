@@ -28,7 +28,17 @@ const createJob = async () => {
     console.log(err);
   }
 };
-
+const createQueryJob = async (query) => {
+  console.log(query);
+  try {
+    return axios.post(`/services/data/v58.0/jobs/query`, {
+      "operation": "query",
+      "query": "SELECT Id FROM Account"
+    })
+  } catch (err) {
+    // console.log(err.message);
+  }
+};
 const closeJob = async (id) => {
   const url = SF_APP_URL + '/services/data/v58.0/jobs/ingest/' + id + '/';
   const authBearer = `Bearer ${ACCESS_TOKEN}`;
@@ -48,7 +58,7 @@ const closeJob = async (id) => {
         return res;
       });
   } catch (err) {
-    console.log(err);
+    console.log(err.message);
   }
 };
 
@@ -71,22 +81,35 @@ const insertAccounts = async (jobResult) => {
     .catch((err) => console.log(err));
 };
 
-const listObjectInfo = async (object) => {
-  const url = `/services/data/v58.0/sobjects/${object}/describe`;
-  return fetch(url, {
-    method: 'GET',
-    duplex: 'half',
-    headers: {
-      'Content-Type': 'text/csv',
-    },
-  })
-    .then((res) => {
-      return res.json();
-    })
-    .then((res) => {
-      return res;
-    })
-    .catch((err) => console.log(err));
+const listObjectInfo = async (object, query) => {
+  try {
+    const url = `/services/data/v58.0/sobjects/${object}/describe`;
+    return axios.get(url, {
+      headers: {
+        'Content-Type': 'text/csv',
+      },
+      body: {
+        query,
+        operation: 'query'
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
+  // return fetch(url, {
+  //   method: 'GET',
+  //   duplex: 'half',
+  //   headers: {
+  //     'Content-Type': 'text/csv',
+  //   },
+  // })
+  //   .then((res) => {
+  //     return res.json();
+  //   })
+  //   .then((res) => {
+  //     return res;
+  //   })
+  //   .catch((err) => console.log(err));
 };
 const failedResults = async (id) => {
   const url = `/services/data/v58.0/jobs/ingest/${id}/failedResults/`;
@@ -102,9 +125,11 @@ const failedResults = async (id) => {
   }
 };
 
-// const jobResult = await createJob();
-// console.log(jobResult);
+const jobResult = await createQueryJob('SELECT Id FROM Account');
+console.log(jobResult);
 
+// const result = await listObjectInfo('acount')
+// processAndWriteFile(result.data, 'errors.csv');
 // const closeResult = await insertAccounts(jobResult);
 // console.log(closeResult);
 
@@ -115,5 +140,6 @@ const failedResults = async (id) => {
 // console.log(res);
 // console.log(objets.fields.map(obj => obj.name));
 // console.log(ACCESS_TOKEN);
-const { data } = await failedResults('750Dn000007Xo0h');
-processAndWriteFile(data, 'errors.csv');
+// const { data } = await failedResults('750Dn000007Xo0h');
+// const result = await listObjectInfo('acount')
+// processAndWriteFile(result.data, 'errors.csv');

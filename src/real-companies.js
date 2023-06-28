@@ -18616,10 +18616,6 @@ const orgs = [
     domain: 'mighty.digital',
   },
   {
-    name: '365Talents',
-    domain: '365talents.com',
-  },
-  {
     name: 'Focus Software Sdn Bhd',
     domain: 'focussoftnet.com',
   },

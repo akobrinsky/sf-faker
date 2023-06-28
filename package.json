@@ -7,7 +7,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-accounts": "node src/create-accounts.js",
-    "build-oppies-and-accounts": "node src/create-oppies.js && node src/create-contacts.js"
+    "build-oppies-and-accounts": "node src/create-oppies.js && node src/create-contacts.js",
+    "login": "sfdx auth:web:login",
+    "get-access-token": "sfdx force:org:display --targetusername $1"
   },
   "author": "Aryeh Kobrinsky",
   "license": "ISC",

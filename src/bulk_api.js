@@ -1,6 +1,55 @@
 import axios from 'axios';
-import { ACCESS_TOKEN, SF_APP_URL, processAndWriteFile } from './utils.js';
+import { ACCESS_TOKEN, SF_APP_URL, EMAIL_DOMAIN, processAndWriteFile } from './utils.js';
 import fs from 'fs';
+
+class BulkStuff {
+  constructor() {
+    this.jobId = null;
+    this.results = null;
+  }
+
+  async createQueryJob(query) {
+    try {
+      const { data } = await axios.post(`/services/data/v58.0/jobs/query`, {
+        operation: 'query',
+        query,
+      });
+      this.jobId = data.id;
+      return data;
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
+
+  async checkJob() {
+    try {
+      const { data } = await axios.get(
+        `/services/data/v58.0/jobs/query/${this.jobId}`
+      );
+      console.log(data);
+      if (data.state !== 'JobComplete') this.checkJob();
+      else {
+        await this.getJobResults();
+      }
+    } catch (err) {
+      // console.log(err);
+    }
+  }
+
+  async getJobResults() {
+    try {
+      const { data } = await axios.get(
+        `/services/data/v58.0/jobs/query/${this.jobId}/results`
+      );
+      console.log({ data });
+      this.results = data;
+      processAndWriteFile(data, 'idz.csv')
+    } catch (err) {
+      console.log(err);
+    }
+  }
+}
+
 const createJob = async () => {
   const url = SF_APP_URL + '/services/data/v58.0/jobs/ingest/';
   const authBearer = `Bearer ${ACCESS_TOKEN}`;
@@ -28,17 +77,7 @@ const createJob = async () => {
     console.log(err);
   }
 };
-const createQueryJob = async (query) => {
-  console.log(query);
-  try {
-    return axios.post(`/services/data/v58.0/jobs/query`, {
-      "operation": "query",
-      "query": "SELECT Id FROM Account"
-    })
-  } catch (err) {
-    // console.log(err.message);
-  }
-};
+
 const closeJob = async (id) => {
   const url = SF_APP_URL + '/services/data/v58.0/jobs/ingest/' + id + '/';
   const authBearer = `Bearer ${ACCESS_TOKEN}`;
@@ -90,8 +129,8 @@ const listObjectInfo = async (object, query) => {
       },
       body: {
         query,
-        operation: 'query'
-      }
+        operation: 'query',
+      },
     });
   } catch (err) {
     console.log(err);
@@ -125,9 +164,6 @@ const failedResults = async (id) => {
   }
 };
 
-const jobResult = await createQueryJob('SELECT Id FROM Account');
-console.log(jobResult);
-
 // const result = await listObjectInfo('acount')
 // processAndWriteFile(result.data, 'errors.csv');
 // const closeResult = await insertAccounts(jobResult);
@@ -143,3 +179,11 @@ console.log(jobResult);
 // const { data } = await failedResults('750Dn000007Xo0h');
 // const result = await listObjectInfo('acount')
 // processAndWriteFile(result.data, 'errors.csv');
+const Foo = new BulkStuff();
+// await Foo.createQueryJob('SELECT Id, Name FROM Account');
+await Foo.createQueryJob(`SELECT Id, UserName, UserType FROM User WHERE Email LIKE '%${EMAIL_DOMAIN}'`);
+await Foo.checkJob();
+// await Foo.getJobResults()
+// console.log(Foo);
+// const jobResult = await createQueryJob('SELECT Id FROM Account');
+// console.log(jobResult.data);

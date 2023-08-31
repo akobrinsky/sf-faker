@@ -11,6 +11,7 @@ const user2 = process.env.USER_TWO_ID;
 
 const SF_APP_URL = process.env.SF_APP_URL;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN
 
 const authBearer = `Bearer ${ACCESS_TOKEN}`;
 
@@ -85,5 +86,6 @@ export {
   memoizeUnique,
   SF_APP_URL,
   ACCESS_TOKEN,
+  EMAIL_DOMAIN,
   processAndWriteFile,
 };

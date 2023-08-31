@@ -1,28 +1,27 @@
 import { format } from '@fast-csv/format';
-import { parseString } from '@fast-csv/parse';
+import { parseString, parseFile } from '@fast-csv/parse';
 import { createWriteStream } from 'fs';
 import dotenv from 'dotenv';
 import axios from 'axios';
 dotenv.config();
 
-
-const user1 = process.env.USER_ONE_ID;
-const user2 = process.env.USER_TWO_ID;
+// const user1 = process.env.USER_ONE_ID;
+// const user2 = process.env.USER_TWO_ID;
 
 const SF_APP_URL = process.env.SF_APP_URL;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
-const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN
+const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN;
 
 const authBearer = `Bearer ${ACCESS_TOKEN}`;
 
-axios.defaults.baseURL = SF_APP_URL
+axios.defaults.baseURL = SF_APP_URL;
 axios.defaults.headers = {
   Authorization: authBearer,
-}
+};
 
-const USER_IDS = [user1];
+const USER_IDS = [];
 
-if (user2) USER_IDS.push(user2);
+// if (user2) USER_IDS.push(user2);
 
 const memoizeUnique = (callback) => {
   let store = {};
@@ -51,6 +50,22 @@ const processAndWriteFile = (data, fileName) => {
       stream.end();
       console.log(`${rowCount} account rows processed`);
     });
+};
+
+const getIDsFromCSV = (csv) => {
+  return new Promise((resolve, reject) => {
+    const result = [];
+    parseFile(csv)
+      .on('error', (error) => console.error(error))
+      .on('data', (row) => {
+        const [ID] = row;
+        if (ID.toLowerCase() !== 'id') USER_IDS.push(ID);
+      })
+      .on('end', (rowCount) => {
+        console.log(`${rowCount - 1} id rows processed`);
+        resolve(result)
+      })
+  })
 };
 
 function writeContacts(amount, accountId, url) {
@@ -88,4 +103,5 @@ export {
   ACCESS_TOKEN,
   EMAIL_DOMAIN,
   processAndWriteFile,
+  getIDsFromCSV,
 };

@@ -1,6 +1,14 @@
 import axios from 'axios';
-import { ACCESS_TOKEN, SF_APP_URL, EMAIL_DOMAIN, processAndWriteFile } from './utils.js';
+import { ACCESS_TOKEN, SF_APP_URL, EMAIL_DOMAIN, processAndWriteFile, getIDsFromCSV, USER_IDS } from './utils.js';
 import fs from 'fs';
+import { createAccounts } from './create-accounts.js';
+
+const queryAndFileLookup = {
+  users: {
+    query: `SELECT Id FROM User WHERE Email LIKE '%${EMAIL_DOMAIN}'`,
+    file: 'user-ids.csv'
+  }
+}
 
 class BulkStuff {
   constructor() {
@@ -26,13 +34,13 @@ class BulkStuff {
       const { data } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}`
       );
-      console.log(data);
-      if (data.state !== 'JobComplete') this.checkJob();
+      console.log(data.state);
+      if (data.state !== 'JobComplete') await this.checkJob();
       else {
         await this.getJobResults();
       }
     } catch (err) {
-      // console.log(err);
+      console.log(err);
     }
   }
 
@@ -41,9 +49,8 @@ class BulkStuff {
       const { data } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}/results`
       );
-      console.log({ data });
-      this.results = data;
-      processAndWriteFile(data, 'idz.csv')
+      processAndWriteFile(data, queryAndFileLookup.users.file)
+      await getIDsFromCSV(queryAndFileLookup.users.file)
     } catch (err) {
       console.log(err);
     }
@@ -181,9 +188,6 @@ const failedResults = async (id) => {
 // processAndWriteFile(result.data, 'errors.csv');
 const Foo = new BulkStuff();
 // await Foo.createQueryJob('SELECT Id, Name FROM Account');
-await Foo.createQueryJob(`SELECT Id, UserName, UserType FROM User WHERE Email LIKE '%${EMAIL_DOMAIN}'`);
+await Foo.createQueryJob(queryAndFileLookup.users.query);
 await Foo.checkJob();
-// await Foo.getJobResults()
-// console.log(Foo);
-// const jobResult = await createQueryJob('SELECT Id FROM Account');
-// console.log(jobResult.data);
+createAccounts()

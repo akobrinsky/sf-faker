@@ -4,18 +4,18 @@ import { createWriteStream } from 'fs';
 import companies from './real-companies.js';
 import { USER_IDS, memoizeUnique } from './utils.js';
 
-const MEMOIZE = false
+const MEMOIZE = false;
 
-let memoizedCompanies = null
+let memoizedCompanies = null;
 
 const seedAccountsHelper = (amount, arr, seed) => {
   faker.seed(seed);
-  memoizedCompanies = memoizeUnique(faker.helpers.arrayElement)
+  memoizedCompanies = memoizeUnique(faker.helpers.arrayElement);
 
   for (let i = 0; i < amount; i += 1) {
     arr.push(createRandomAccount());
   }
-  memoizedCompanies = null
+  memoizedCompanies = null;
 };
 
 function createRandomAccount() {
@@ -26,7 +26,9 @@ function createRandomAccount() {
     'Technology Partner',
     'Other',
   ];
-  const company = MEMOIZE ?  memoizedCompanies(companies) : faker.helpers.arrayElement(companies)
+  const company = MEMOIZE
+    ? memoizedCompanies(companies)
+    : faker.helpers.arrayElement(companies);
   const ratingTypes = ['Hot', 'Warm', 'Cold'];
   const slaTypes = ['Gold', 'Silver', 'Platinum', 'Bronze'];
   const CustomerPriority__c = ['High', 'Low', 'Medium'];
@@ -41,7 +43,7 @@ function createRandomAccount() {
   return {
     Name: company.name,
     Website: company.domain,
-    OwnerId: faker.helpers.arrayElement(USER_IDS), 
+    OwnerId: faker.helpers.arrayElement(USER_IDS),
     Type: faker.helpers.arrayElement(accountTypes),
     Rating: faker.helpers.arrayElement(ratingTypes),
     Phone: faker.phone.number('###-###-###'),
@@ -65,39 +67,41 @@ function createRandomAccount() {
 const accountsLookup = {
   one: [],
   two: [],
-  three: []
-}
+  three: [],
+};
 
 const TOTAL_ACCOUNTS = 20;
 const TOTAL_ACCOUNT_TWO = TOTAL_ACCOUNTS * 0.5;
 const TOTAL_ACCOUNT_THREE = TOTAL_ACCOUNTS * 0.3;
 
-seedAccountsHelper(TOTAL_ACCOUNTS, accountsLookup.one, 100);
-seedAccountsHelper(TOTAL_ACCOUNT_TWO, accountsLookup.two, 0);
-seedAccountsHelper(TOTAL_ACCOUNT_THREE, accountsLookup.three, 0);
+export const createAccounts = () => {
+  seedAccountsHelper(TOTAL_ACCOUNTS, accountsLookup.one, 100);
+  seedAccountsHelper(TOTAL_ACCOUNT_TWO, accountsLookup.two, 0);
+  seedAccountsHelper(TOTAL_ACCOUNT_THREE, accountsLookup.three, 0);
 
-// Fill in the rest with seed after match points
-seedAccountsHelper(
-  TOTAL_ACCOUNTS - TOTAL_ACCOUNT_TWO,
-  accountsLookup.two,
-  TOTAL_ACCOUNT_TWO
-);
-seedAccountsHelper(
-  TOTAL_ACCOUNTS - TOTAL_ACCOUNT_THREE,
-  accountsLookup.three,
-  TOTAL_ACCOUNT_THREE
-);
+  // Fill in the rest with seed after match points
+  seedAccountsHelper(
+    TOTAL_ACCOUNTS - TOTAL_ACCOUNT_TWO,
+    accountsLookup.two,
+    TOTAL_ACCOUNT_TWO
+  );
+  seedAccountsHelper(
+    TOTAL_ACCOUNTS - TOTAL_ACCOUNT_THREE,
+    accountsLookup.three,
+    TOTAL_ACCOUNT_THREE
+  );
 
-for (const file of ['one', 'two', 'three']) {
-  const fileName = `accounts-${file}.csv`
-  const csvFile = createWriteStream(fileName);
-  const stream = format({ headers: true });
-  stream.pipe(csvFile);
-  
-  accountsLookup[file].forEach((account) => {
-    stream.write(account);
-  });
-  console.log(`${TOTAL_ACCOUNTS} created and written to ${fileName}`);
-  
-  stream.end();
-}
+  for (const file of ['one', 'two', 'three']) {
+    const fileName = `accounts-${file}.csv`;
+    const csvFile = createWriteStream(fileName);
+    const stream = format({ headers: true });
+    stream.pipe(csvFile);
+
+    accountsLookup[file].forEach((account) => {
+      stream.write(account);
+    });
+    console.log(`${TOTAL_ACCOUNTS} created and written to ${fileName}`);
+
+    stream.end();
+  }
+};

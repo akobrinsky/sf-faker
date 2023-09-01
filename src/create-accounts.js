@@ -70,11 +70,12 @@ const accountsLookup = {
   three: [],
 };
 
-const TOTAL_ACCOUNTS = 20;
-const TOTAL_ACCOUNT_TWO = TOTAL_ACCOUNTS * 0.5;
-const TOTAL_ACCOUNT_THREE = TOTAL_ACCOUNTS * 0.3;
 
-export const createAccounts = () => {
+export const createAccounts = (numAccounts = 20) => {
+  const TOTAL_ACCOUNTS = numAccounts;
+  const TOTAL_ACCOUNT_TWO = Math.floor(TOTAL_ACCOUNTS * 0.5);
+  const TOTAL_ACCOUNT_THREE = Math.floor(TOTAL_ACCOUNTS * 0.3);
+
   seedAccountsHelper(TOTAL_ACCOUNTS, accountsLookup.one, 100);
   seedAccountsHelper(TOTAL_ACCOUNT_TWO, accountsLookup.two, 0);
   seedAccountsHelper(TOTAL_ACCOUNT_THREE, accountsLookup.three, 0);

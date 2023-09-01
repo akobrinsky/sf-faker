@@ -2,26 +2,11 @@ import { format } from '@fast-csv/format';
 import { parseString, parseFile } from '@fast-csv/parse';
 import { createWriteStream } from 'fs';
 import dotenv from 'dotenv';
-import axios from 'axios';
 dotenv.config();
 
-// const user1 = process.env.USER_ONE_ID;
-// const user2 = process.env.USER_TWO_ID;
-
-const SF_APP_URL = process.env.SF_APP_URL;
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN;
 
-const authBearer = `Bearer ${ACCESS_TOKEN}`;
-
-axios.defaults.baseURL = SF_APP_URL;
-axios.defaults.headers = {
-  Authorization: authBearer,
-};
-
 const USER_IDS = [];
-
-// if (user2) USER_IDS.push(user2);
 
 const memoizeUnique = (callback) => {
   let store = {};
@@ -48,7 +33,7 @@ const processAndWriteFile = (data, fileName) => {
     .on('data', (row) => stream.write(row))
     .on('end', (rowCount) => {
       stream.end();
-      console.log(`${rowCount} account rows processed`);
+      console.log(`${rowCount} rows written to ${fileName}`);
     });
 };
 
@@ -63,9 +48,9 @@ const getIDsFromCSV = (csv) => {
       })
       .on('end', (rowCount) => {
         console.log(`${rowCount - 1} id rows processed`);
-        resolve(result)
-      })
-  })
+        resolve(result);
+      });
+  });
 };
 
 function writeContacts(amount, accountId, url) {
@@ -99,8 +84,6 @@ function writeContacts(amount, accountId, url) {
 export {
   USER_IDS,
   memoizeUnique,
-  SF_APP_URL,
-  ACCESS_TOKEN,
   EMAIL_DOMAIN,
   processAndWriteFile,
   getIDsFromCSV,

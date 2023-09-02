@@ -38,6 +38,26 @@ export class BulkStuff {
     }
   }
 
+  async loginToSalesforce(email) {
+    return new Promise((resolve) => {
+      const query = `sfdx org login web`;
+      exec(query, (error, stdout, stderr) => {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        if (stderr) {
+          console.log(`stderr: ${stderr}`);
+          return;
+        }
+
+        console.log(stdout);
+
+        resolve();
+      });
+    });
+  }
+
   async setupEnvironment(email) {
     return new Promise((resolve) => {
       const query = `sfdx org:display -o ${email} --json`;

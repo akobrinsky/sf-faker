@@ -8,6 +8,7 @@ const email = await input({ message: "What's your SF dev instance email?" });
 if (email) {
   const Foo = new BulkStuff();
   
+  await Foo.loginToSalesforce(email);
   await Foo.setupEnvironment(email);
   
   const setup = await confirm({ message: "Extract User Ids to map to accounts and oppies" });

@@ -1,6 +1,6 @@
 import { format } from '@fast-csv/format';
 import { parseString, parseFile } from '@fast-csv/parse';
-import { createWriteStream } from 'fs';
+import { createWriteStream, readFileSync, writeFileSync } from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -81,10 +81,37 @@ function writeContacts(amount, accountId, url) {
   }
 }
 
+const readAndWriteByProperty = (
+  property,
+  value,
+  filename = './credentials.json'
+) => {
+  const current = JSON.parse(readFileSync(filename));
+  current[property] = value;
+  writeFileSync(filename, JSON.stringify(current));
+  return current;
+};
+
+// const writeByProperty = (property, filename = './credentials.json') => {
+//   const current = JSON.parse(readFileSync(filename))
+//   return current[property]
+// }
+
+const errorWrapper = (error) => {
+  console.log({
+    message: error.message,
+    data: error.response.data,
+    status: error.response.status,
+  });
+};
+
+
 export {
   USER_IDS,
   memoizeUnique,
   EMAIL_DOMAIN,
   processAndWriteFile,
   getIDsFromCSV,
+  errorWrapper,
+  readAndWriteByProperty,
 };

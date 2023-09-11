@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^3.0.4",
-    "dotenv": "^16.1.4"
+    "dotenv": "^16.1.4",
+    "inquirer-date-prompt": "^3.0.0"
   }
 }

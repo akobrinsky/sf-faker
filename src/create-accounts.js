@@ -71,7 +71,7 @@ const accountsLookup = {
 };
 
 
-export const createAccounts = (numAccounts = 20) => {
+export const createAccounts = (numAccounts = 20, userIds) => {
   const TOTAL_ACCOUNTS = numAccounts;
   const TOTAL_ACCOUNT_TWO = Math.floor(TOTAL_ACCOUNTS * 0.5);
   const TOTAL_ACCOUNT_THREE = Math.floor(TOTAL_ACCOUNTS * 0.3);

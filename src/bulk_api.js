@@ -3,6 +3,8 @@ import {
   EMAIL_DOMAIN,
   processAndWriteFile,
   getIDsFromCSV,
+  errorWrapper,
+  readAndWriteByProperty,
 } from './utils.js';
 import fs from 'fs';
 import { createAccounts } from './create-accounts.js';
@@ -23,6 +25,8 @@ export class BulkStuff {
   constructor() {
     this.jobId = null;
     this.results = null;
+    this.job = null;
+    this.userIDs = null
   }
 
   async createQueryJob(query) {
@@ -38,7 +42,7 @@ export class BulkStuff {
     }
   }
 
-  async loginToSalesforce(email) {
+  async loginToSalesforce() {
     return new Promise((resolve) => {
       const query = `sfdx org login web`;
       exec(query, (error, stdout, stderr) => {
@@ -104,84 +108,104 @@ export class BulkStuff {
       const { data } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}/results`
       );
-      console.log(table);
       processAndWriteFile(data, queryAndFileLookup[table].file);
-      await getIDsFromCSV(queryAndFileLookup[table].file);
+      const ids = await getIDsFromCSV(queryAndFileLookup[table].file);
+      if (table === 'account') this.accountId = ids
+      if (table === 'user') this.userIDs = ids
+      readAndWriteByProperty(table, ids);
     } catch (err) {
-      console.log(err);
+      errorWrapper(err);
     }
   }
 
-  async createJob() {
-    const url = SF_APP_URL + '/services/data/v58.0/jobs/ingest/';
-    const authBearer = `Bearer ${ACCESS_TOKEN}`;
+  async createJob(table) {
     try {
-      return fetch(url, {
-        method: 'POST',
+      const body = JSON.stringify({
+        object: 'Account',
+        contentType: 'CSV',
+        operation: 'insert',
+        lineEnding: 'LF',
+      });
+      const { data } = await axios.post(
+        '/services/data/v58.0/jobs/ingest/',
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-PrettyPrint': '1',
+          },
+        }
+      );
+      this.job = data;
+      return data;
+    } catch (err) {
+      errorWrapper(err);
+    }
+  }
+
+  async closeJob(id) {
+    const body = JSON.stringify({ state: 'UploadComplete' });
+    try {
+      const url = `/services/data/v58.0/jobs/ingest/${id}/`;
+      const { data } = await axios.patch(url, body, {
         headers: {
-          Authorization: authBearer,
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
           Accept: 'application/json',
           'X-PrettyPrint': '1',
         },
-        body: JSON.stringify({
-          object: 'Account',
-          contentType: 'CSV',
-          operation: 'insert',
-          lineEnding: 'LF',
-        }),
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          return res;
-        });
+      });
+      return data;
+    } catch (err) {
+      errorWrapper(err);
+    }
+  }
+
+  async insertAccounts() {
+    try {
+      const url = this.job.contentUrl;
+      await axios.put(url, fs.createReadStream('./accounts-one.csv'), {
+        headers: {
+          'Content-Type': 'text/csv',
+          Accept: 'application/json',
+        },
+      });
+    } catch (err) {
+      errorWrapper(err);
+    }
+  }
+
+  async completeInsertJob() {
+    const body = JSON.stringify({ state: 'UploadComplete' });
+
+    try {
+      const url = `/services/data/v58.0/jobs/ingest/${this.job.id}/`;
+      const foo = await axios.patch(url, body, {
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          Accept: 'application/json',
+        },
+      });
+      return foo;
+    } catch (err) {
+      errorWrapper(err);
+    }
+  }
+
+  async failedResults() {
+    const url = `/services/data/v58.0/jobs/ingest/${this.job.id}/failedResults/`;
+    try {
+      const foo = await axios.get(url, {
+        headers: {
+          'Content-Type': 'text/csv',
+        },
+      });
+      return foo;
     } catch (err) {
       console.log(err);
     }
   }
 }
-
-const closeJob = async (id) => {
-  const url = SF_APP_URL + '/services/data/v58.0/jobs/ingest/' + id + '/';
-  const authBearer = `Bearer ${ACCESS_TOKEN}`;
-  try {
-    return fetch(url, {
-      method: 'PATCH',
-      headers: {
-        Authorization: authBearer,
-        'Content-Type': 'application/json; charset=UTF-8',
-        Accept: 'application/json',
-        'X-PrettyPrint': '1',
-      },
-      body: JSON.stringify({ state: 'UploadComplete' }),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        return res;
-      });
-  } catch (err) {
-    console.log(err.message);
-  }
-};
-
-const insertAccounts = async (jobResult) => {
-  const url = SF_APP_URL + '/' + jobResult.contentUrl;
-  const authBearer = `Bearer ${ACCESS_TOKEN}`;
-  return fetch(url, {
-    method: 'PUT',
-    duplex: 'half',
-    headers: {
-      Authorization: authBearer,
-      'Content-Type': 'text/csv',
-      Accept: 'application/json',
-    },
-    body: fs.createReadStream('./accounts-one.csv'),
-  })
-    .then((res) => {
-      return res;
-    })
-    .catch((err) => console.log(err));
-};
 
 const listObjectInfo = async (object, query) => {
   try {
@@ -214,7 +238,7 @@ const listObjectInfo = async (object, query) => {
   //   .catch((err) => console.log(err));
 };
 const failedResults = async (id) => {
-  const url = `/services/data/v58.0/jobs/ingest/${id}/failedResults/`;
+  const url = `/services/data/v58.0/jobs/ingest/${this.job.id}/failedResults/`;
   try {
     const foo = await axios.get(url, {
       headers: {
@@ -235,23 +259,15 @@ const failedResults = async (id) => {
 // const foo = await closeJob(jobResult.id)
 // console.log(foo);
 
-// const objets = await listObjectInfo('account')
-// console.log(res);
-// console.log(objets.fields.map(obj => obj.name));
-// console.log(ACCESS_TOKEN);
 // const { data } = await failedResults('750Dn000007Xo0h');
 // const result = await listObjectInfo('acount')
 // processAndWriteFile(result.data, 'errors.csv');
 // const Foo = new BulkStuff();
+
+// await Foo.loginToSalesforce('aryeh+sf+full1@crossbeam.com');
 // await Foo.setupEnvironment('aryeh+sf+full1@crossbeam.com');
-// await Foo.createQueryJob('SELECT Id, Name FROM Account');
-// get and set user ids
-// await Foo.createQueryJob(queryAndFileLookup.user.query);
-// await Foo.checkJob('user');
-
-// Write new Accounts to csv
-// createAccounts();
-
-// Upload new accounts
-// await Foo.createQueryJob(queryAndFileLookup.account.query);
-// await Foo.checkJob('account');
+// const result = await Foo.createJob();
+// const blah = await Foo.insertAccounts();
+// const whatever = await Foo.completeInsertJob();
+// const failed = await Foo.failedResults();
+// console.log(failed);

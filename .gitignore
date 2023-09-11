@@ -4,3 +4,4 @@ node_modules/
 *.csv
 .env
 .eslintcache
+credentials.json

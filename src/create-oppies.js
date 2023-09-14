@@ -36,7 +36,7 @@ const buildDumbName = (name) => {
   return `${name} - ${extraOppyTitle}`.replace(/(^|[\s-])\S/g, (match) => match.toUpperCase())
 };
 
-function buildOpps(amount, accountName, accountId) {
+function buildOpps(amount, accountName, AccountId) {
   const types = [
     'Existing Customer - Upgrade',
     'Existing Customer - Replacement',
@@ -53,8 +53,8 @@ function buildOpps(amount, accountName, accountId) {
     { weight: 1, value: 'Closed Lost' },
   ];
   for (let i = 0; i < amount; i += 1) {
-    const stage = faker.helpers.weightedArrayElement(stages);
-    const closeDateOptions = stage === 'Closed Won' || stage === 'Closed Lost'
+    const StageName = faker.helpers.weightedArrayElement(stages);
+    const closeDateOptions = StageName === 'Closed Won' || StageName === 'Closed Lost'
       ? {
           from: DateTime.local().minus({ years: 2 }),
           to: DateTime.local().minus({ days: 1 }),
@@ -63,16 +63,16 @@ function buildOpps(amount, accountName, accountId) {
           from: DateTime.local().plus({ days: 2 }),
           to: DateTime.local().plus({ years: 2 }),
         };
-    const name = buildDumbName(accountName)
-    const closeDate = faker.date.between(closeDateOptions).toISOString();
+    const Name = buildDumbName(accountName)
+    const CloseDate = faker.date.between(closeDateOptions).toISOString();
     stream.write({
-      accountId,
-      closeDate,
-      name,
-      stage,
-      ownerId: faker.helpers.arrayElement(USER_IDS),
-      type: faker.helpers.arrayElement(types),
-      amount: faker.finance.amount(50000, 400000, 0),
+      AccountId,
+      CloseDate,
+      Name,
+      StageName,
+      OwnerId: faker.helpers.arrayElement(USER_IDS),
+      Type: faker.helpers.arrayElement(types),
+      Amount: faker.finance.amount(50000, 400000, 0),
     });
   }
 }

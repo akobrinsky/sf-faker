@@ -11,13 +11,13 @@ import { createAccounts } from './create-accounts.js';
 import { exec } from 'child_process';
 
 export const queryAndFileLookup = {
-  user: {
+  User: {
     query: `SELECT Id FROM User WHERE Email LIKE '%${EMAIL_DOMAIN}'`,
     file: 'user-ids.csv',
   },
-  account: {
-    query: 'SELECT ID FROM Account',
-    file: 'account-ids.csv',
+  Account: {
+    query: 'SELECT ID, Name, Website FROM Account',
+    file: 'extracted-accounts.csv',
   },
 };
 
@@ -78,7 +78,7 @@ export class BulkStuff {
         const { accessToken, instanceUrl } = JSON.parse(stdout).result;
 
         const authBearer = `Bearer ${accessToken}`;
-
+        console.log({accessToken, instanceUrl});
         axios.defaults.baseURL = instanceUrl;
         axios.defaults.headers = {
           Authorization: authBearer,
@@ -93,7 +93,7 @@ export class BulkStuff {
       const { data } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}`
       );
-      console.log(data.state);
+      console.log(data);
       if (data.state !== 'JobComplete') await this.checkJob(table);
       else {
         await this.getJobResults(table);
@@ -105,13 +105,22 @@ export class BulkStuff {
 
   async getJobResults(table) {
     try {
-      const { data } = await axios.get(
+      const { data, headers } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}/results`
       );
+      console.log(headers);
       processAndWriteFile(data, queryAndFileLookup[table].file);
+      const locator = headers['sforce-locator']
+
+      if (locator) {
+        const { data, headers } = await axios.get(
+          `/services/data/v58.0/jobs/query/${this.jobId}/results?locator=${locator}`
+        );
+        processAndWriteFile(data, 'accounts-nextbatch.csv');
+      }
       const ids = await getIDsFromCSV(queryAndFileLookup[table].file);
-      if (table === 'account') this.accountId = ids
-      if (table === 'user') this.userIDs = ids
+      if (table === 'Account') this.accountId = ids
+      if (table === 'User') this.userIDs = ids
       readAndWriteByProperty(table, ids);
     } catch (err) {
       errorWrapper(err);
@@ -121,7 +130,7 @@ export class BulkStuff {
   async createJob(table) {
     try {
       const body = JSON.stringify({
-        object: 'Account',
+        object: table,
         contentType: 'CSV',
         operation: 'insert',
         lineEnding: 'LF',
@@ -161,10 +170,10 @@ export class BulkStuff {
     }
   }
 
-  async insertAccounts() {
+  async insertAccounts(file) {
     try {
       const url = this.job.contentUrl;
-      await axios.put(url, fs.createReadStream('./accounts-one.csv'), {
+      await axios.put(url, fs.createReadStream(file), {
         headers: {
           'Content-Type': 'text/csv',
           Accept: 'application/json',
@@ -192,8 +201,8 @@ export class BulkStuff {
     }
   }
 
-  async failedResults() {
-    const url = `/services/data/v58.0/jobs/ingest/${this.job.id}/failedResults/`;
+  async failedResults(id) {
+    const url = `/services/data/v58.0/jobs/ingest/${id}/failedResults/`;
     try {
       const foo = await axios.get(url, {
         headers: {
@@ -222,20 +231,6 @@ const listObjectInfo = async (object, query) => {
   } catch (err) {
     console.log(err);
   }
-  // return fetch(url, {
-  //   method: 'GET',
-  //   duplex: 'half',
-  //   headers: {
-  //     'Content-Type': 'text/csv',
-  //   },
-  // })
-  //   .then((res) => {
-  //     return res.json();
-  //   })
-  //   .then((res) => {
-  //     return res;
-  //   })
-  //   .catch((err) => console.log(err));
 };
 const failedResults = async (id) => {
   const url = `/services/data/v58.0/jobs/ingest/${this.job.id}/failedResults/`;
@@ -251,23 +246,14 @@ const failedResults = async (id) => {
   }
 };
 
-// const result = await listObjectInfo('acount')
-// processAndWriteFile(result.data, 'errors.csv');
-// const closeResult = await insertAccounts(jobResult);
-// console.log(closeResult);
-
-// const foo = await closeJob(jobResult.id)
-// console.log(foo);
-
-// const { data } = await failedResults('750Dn000007Xo0h');
-// const result = await listObjectInfo('acount')
-// processAndWriteFile(result.data, 'errors.csv');
-// const Foo = new BulkStuff();
+const Foo = new BulkStuff();
 
 // await Foo.loginToSalesforce('aryeh+sf+full1@crossbeam.com');
-// await Foo.setupEnvironment('aryeh+sf+full1@crossbeam.com');
-// const result = await Foo.createJob();
-// const blah = await Foo.insertAccounts();
-// const whatever = await Foo.completeInsertJob();
-// const failed = await Foo.failedResults();
+await Foo.setupEnvironment('aryeh+holverscaletest@crossbeam.com');
+const result = await Foo.createJob('Lead');
+const blah = await Foo.insertAccounts('./leads.csv');
+const whatever = await Foo.completeInsertJob();
+// const failed = await Foo.failedResults('750Hp00001FRaRQ');
 // console.log(failed);
+// await Foo.createQueryJob(queryAndFileLookup.Account.query);
+// await Foo.checkJob('Account');

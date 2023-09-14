@@ -55,24 +55,24 @@ if (email) {
       await Foo.checkJob('user');
     }
   
-    const numAccounts = await input({ message: "How many accounts would you like to create?" });
+    // const numAccounts = await input({ message: "How many accounts would you like to create?" });
 
-    const foo = await input({ message: "How many SF Instances would you like to feed 🥑🥕🥩🍍" });
-    const foo1 = await input({ message: "How many leads would you like to create?" });
-    const foo2 = await confirm({ message: "Do you want to create some fresh oppies?" });
+    // const foo = await input({ message: "How many SF Instances would you like to feed 🥑🥕🥩🍍" });
+    // const foo1 = await input({ message: "How many leads would you like to create?" });
+    // const foo2 = await confirm({ message: "Do you want to create some fresh oppies?" });
     
 
 
     
-    if (numAccounts > 0) {
-      // Write new Accounts to csv
-      createAccounts(numAccounts);
+    // if (numAccounts > 0) {
+    //   // Write new Accounts to csv
+    //   createAccounts(numAccounts);
   
-      // Upload new accounts
-      // await Foo.createQueryJob(queryAndFileLookup.account.query);
-      // await Foo.checkJob('account');
-      console.log('etc');
-    }
+    //   // Upload new accounts
+    //   // await Foo.createQueryJob(queryAndFileLookup.account.query);
+    //   // await Foo.checkJob('account');
+    //   console.log('etc');
+    // }
   }
   
 } else {

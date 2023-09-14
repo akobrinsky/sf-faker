@@ -5,20 +5,58 @@ import { createWriteStream } from 'fs';
 import { USER_IDS } from './utils.js';
 import { DateTime } from 'luxon';
 
-const ingestFileName = 'extracted-accounts.csv';
-const oppyCSV = createWriteStream('contacts.csv');
+const ingestFileName = 'accounts-nextbatch.csv';
+const oppyCSV = createWriteStream('leads.csv');
 
 const stream = format({ headers: true });
 stream.pipe(oppyCSV);
+
+faker.seed(120);
+
+const industries = [
+  'Agriculture',
+  'Apparel',
+  'Banking',
+  'Biotechnology',
+  'Chemicals',
+  'Communications',
+  'Construction',
+  'Consulting',
+  'Education',
+  'Electronics',
+  'Energy',
+  'Engineering',
+  'Entertainment',
+  'Environmental',
+  'Finance',
+  'Government',
+  'Healthcare',
+  'Hospitality',
+  'Insurance',
+  'Machinery',
+  'Manufacturing',
+  'Media',
+  'Recreation',
+  'Retail',
+  'Shipping',
+  'Technology',
+  'Telecommunications',
+  'Transportation',
+];
 
 let numberOfContactsCreated = 0;
 parseFile(ingestFileName)
   .on('error', (error) => console.error(error))
   .on('data', (row) => {
-    const [accountId, , accountDomain] = row;
+    const [accountId, AccountName, accountDomain] = row;
     const numberOfContacts = faker.number.int({ min: 1, max: 2 });
     numberOfContactsCreated += numberOfContacts;
-    if (accountId !== 'ID') writeContacts(numberOfContacts, accountId, accountDomain);
+    if (accountId !== 'ID') {
+      faker.helpers.maybe(
+        () => writeContacts(numberOfContacts, AccountName, accountDomain),
+        { probability: 0.25 }
+      );
+    }
   })
   .on('end', (rowCount) => {
     console.log(`${rowCount} account rows processed`);
@@ -27,30 +65,23 @@ parseFile(ingestFileName)
     );
   });
 
-function writeContacts(amount, AccountId, url) {
+function writeContacts(amount, AccountName, url) {
   for (let i = 0; i < amount; i += 1) {
     const FirstName = faker.person.firstName();
     const LastName = faker.person.lastName();
 
     const Email = FirstName.toLowerCase()[0] + LastName.toLowerCase() + `@${url}`;
-    const Birthdate = faker.date
-      .between({
-        from: DateTime.local().minus({ years: 55 }),
-        to: DateTime.local().minus({ years: 30 }),
-      })
-      .toISOString();
+
     const payload = {
-      AccountId,
-      Birthdate,
       FirstName,
       LastName,
       Email,
-      AssistantName: faker.person.fullName(),
+      Company: AccountName,
+      Industry: faker.helpers.arrayElement(industries),
       OwnerId: faker.helpers.arrayElement(USER_IDS),
       Title: faker.person.jobTitle(),
       Phone: faker.phone.number('###-###-####'),
-      AssistantPhone: faker.phone.number('###-###-####'),
-    }
+    };
     stream.write(payload);
   }
 }

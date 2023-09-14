@@ -2,11 +2,22 @@ import { faker } from '@faker-js/faker';
 import { format } from '@fast-csv/format';
 import { createWriteStream } from 'fs';
 import companies from './real-companies.js';
-import { USER_IDS, memoizeUnique } from './utils.js';
+import { USER_IDS, memoizeUnique, convertToRoman } from './utils.js';
 
 const MEMOIZE = false;
 
 let memoizedCompanies = null;
+
+const buildDomain = (accountName) => {
+  const suffix = faker.internet.domainSuffix();
+  const domainName = accountName
+    .split(/[\' ,-]+/)
+    .join('-')
+    .toLowerCase();
+  return `${domainName}.${suffix}`;
+};
+
+let companyNameLookup = {};
 
 const seedAccountsHelper = (amount, arr, seed) => {
   faker.seed(seed);
@@ -26,9 +37,9 @@ function createRandomAccount() {
     'Technology Partner',
     'Other',
   ];
-  const company = MEMOIZE
-    ? memoizedCompanies(companies)
-    : faker.helpers.arrayElement(companies);
+  // const company = MEMOIZE
+  //   ? memoizedCompanies(companies)
+  //   : faker.helpers.arrayElement(companies);
   const ratingTypes = ['Hot', 'Warm', 'Cold'];
   const slaTypes = ['Gold', 'Silver', 'Platinum', 'Bronze'];
   const CustomerPriority__c = ['High', 'Low', 'Medium'];
@@ -39,17 +50,32 @@ function createRandomAccount() {
   const BillingState = faker.location.state();
   const BillingPostalCode = faker.location.zipCode();
   const BillingCountry = 'United States';
+  const companyName = faker.company.name();
+
+  if (!Object.hasOwn(companyNameLookup, companyName)) {
+    companyNameLookup[companyName] = 0
+  } else {
+    companyNameLookup[companyName] += 1
+  }
+  
+  const buildName = (name) => {
+    const numNames = companyNameLookup[name]
+    if (numNames === 0) return name
+    return `${name}-${convertToRoman(companyNameLookup[name])}`
+  }
+  
+  const name = buildName(companyName)
 
   return {
-    Name: company.name,
-    Website: company.domain,
+    Name: name,
+    Website: buildDomain(name),
     OwnerId: faker.helpers.arrayElement(USER_IDS),
     Type: faker.helpers.arrayElement(accountTypes),
-    Rating: faker.helpers.arrayElement(ratingTypes),
+    // Rating: faker.helpers.arrayElement(ratingTypes),
     Phone: faker.phone.number('###-###-###'),
-    SLA__c: faker.helpers.arrayElement(slaTypes),
-    UpsellOpportunity__c: faker.helpers.arrayElement(UpsellOpportunity__c),
-    CustomerPriority__c: faker.helpers.arrayElement(CustomerPriority__c),
+    // SLA__c: faker.helpers.arrayElement(slaTypes),
+    // UpsellOpportunity__c: faker.helpers.arrayElement(UpsellOpportunity__c),
+    // CustomerPriority__c: faker.helpers.arrayElement(CustomerPriority__c),
     NumberOfEmployees: faker.number.int({ min: 100, max: 3000 }),
     BillingStreet,
     BillingCity,
@@ -70,15 +96,17 @@ const accountsLookup = {
   three: [],
 };
 
-
-export const createAccounts = (numAccounts = 20, userIds) => {
+export const createAccounts = (numAccounts = 500000) => {
   const TOTAL_ACCOUNTS = numAccounts;
   const TOTAL_ACCOUNT_TWO = Math.floor(TOTAL_ACCOUNTS * 0.5);
   const TOTAL_ACCOUNT_THREE = Math.floor(TOTAL_ACCOUNTS * 0.3);
 
   seedAccountsHelper(TOTAL_ACCOUNTS, accountsLookup.one, 100);
+  companyNameLookup = {}
   seedAccountsHelper(TOTAL_ACCOUNT_TWO, accountsLookup.two, 0);
+  companyNameLookup = {}
   seedAccountsHelper(TOTAL_ACCOUNT_THREE, accountsLookup.three, 0);
+  companyNameLookup = {}
 
   // Fill in the rest with seed after match points
   seedAccountsHelper(
@@ -106,3 +134,4 @@ export const createAccounts = (numAccounts = 20, userIds) => {
     stream.end();
   }
 };
+// createAccounts()

@@ -6,7 +6,38 @@ dotenv.config();
 
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN;
 
-const USER_IDS = [];
+const USER_IDS = [
+  '005Hp00000fiLgYIAU',
+  '005Hp00000fiLl0IAE',
+  '005Hp00000fiLl5IAE',
+];
+
+function convertToRoman(num) {
+  var roman = {
+    M: 1000,
+    CM: 900,
+    D: 500,
+    CD: 400,
+    C: 100,
+    XC: 90,
+    L: 50,
+    XL: 40,
+    X: 10,
+    IX: 9,
+    V: 5,
+    IV: 4,
+    I: 1,
+  };
+  var str = '';
+
+  for (var i of Object.keys(roman)) {
+    var q = Math.floor(num / roman[i]);
+    num -= q * roman[i];
+    str += i.repeat(q);
+  }
+
+  return str;
+}
 
 const memoizeUnique = (callback) => {
   let store = {};
@@ -44,7 +75,7 @@ const getIDsFromCSV = (csv) => {
       .on('error', (error) => console.error(error))
       .on('data', (row) => {
         const [ID] = row;
-        if (ID.toLowerCase() !== 'id') USER_IDS.push(ID);
+        if (ID.toLowerCase() !== 'id') result.push(ID);
       })
       .on('end', (rowCount) => {
         console.log(`${rowCount - 1} id rows processed`);
@@ -105,13 +136,13 @@ const errorWrapper = (error) => {
   });
 };
 
-
 export {
   USER_IDS,
   memoizeUnique,
   EMAIL_DOMAIN,
   processAndWriteFile,
   getIDsFromCSV,
+  convertToRoman,
   errorWrapper,
   readAndWriteByProperty,
 };

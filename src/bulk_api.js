@@ -19,6 +19,10 @@ export const queryAndFileLookup = {
     query: 'SELECT ID, Name, Website FROM Account',
     file: 'extracted-accounts.csv',
   },
+  Lead: {
+    query: 'SELECT ID FROM Lead',
+    file: 'extracted-leads.csv',
+  },
 };
 
 export class BulkStuff {
@@ -153,6 +157,32 @@ export class BulkStuff {
     }
   }
 
+  async createDeleteJob(table) {
+    try {
+      const body = JSON.stringify({
+        object: table,
+        contentType: 'CSV',
+        operation: 'hardDelete',
+        lineEnding: 'LF',
+      });
+      const { data } = await axios.post(
+        '/services/data/v58.0/jobs/ingest/',
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-PrettyPrint': '1',
+          },
+        }
+      );
+      this.job = data;
+      return data;
+    } catch (err) {
+      errorWrapper(err);
+    }
+  }
+
   async closeJob(id) {
     const body = JSON.stringify({ state: 'UploadComplete' });
     try {
@@ -170,7 +200,7 @@ export class BulkStuff {
     }
   }
 
-  async insertAccounts(file) {
+  async uploadFile(file) {
     try {
       const url = this.job.contentUrl;
       await axios.put(url, fs.createReadStream(file), {
@@ -248,12 +278,13 @@ const failedResults = async (id) => {
 
 const Foo = new BulkStuff();
 
-// await Foo.loginToSalesforce('aryeh+sf+full1@crossbeam.com');
-await Foo.setupEnvironment('aryeh+holverscaletest@crossbeam.com');
-const result = await Foo.createJob('Lead');
-const blah = await Foo.insertAccounts('./leads.csv');
-const whatever = await Foo.completeInsertJob();
-// const failed = await Foo.failedResults('750Hp00001FRaRQ');
-// console.log(failed);
-// await Foo.createQueryJob(queryAndFileLookup.Account.query);
-// await Foo.checkJob('Account');
+// await Foo.loginToSalesforce('aryeh+holverscaletest+admin@crossbeam.com');
+await Foo.setupEnvironment('aryeh+holverscaletest+superadmin@crossbeam.com');
+// const result = await Foo.createJob('Lead');
+// const result = await Foo.createDeleteJob('Lead');
+const blah = await Foo.uploadFile('./leads.csv');
+// const whatever = await Foo.completeInsertJob();
+const failed = await Foo.failedResults('750Hp00001FRabV');
+console.log(failed);
+// await Foo.createQueryJob(queryAndFileLookup.Lead.query);
+// await Foo.checkJob('Lead');

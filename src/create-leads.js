@@ -49,39 +49,35 @@ parseFile(ingestFileName)
   .on('error', (error) => console.error(error))
   .on('data', (row) => {
     const [accountId, AccountName, accountDomain] = row;
-    const numberOfContacts = faker.number.int({ min: 1, max: 2 });
-    numberOfContactsCreated += numberOfContacts;
     if (accountId !== 'ID') {
       faker.helpers.maybe(
-        () => writeContacts(numberOfContacts, AccountName, accountDomain),
-        { probability: 0.25 }
+        () => writeContacts(AccountName, accountDomain),
+        { probability: 0.30 }
       );
     }
   })
   .on('end', (rowCount) => {
     console.log(`${rowCount} account rows processed`);
     console.log(
-      `finished creating contacts: ${numberOfContactsCreated} created`
+      `finished creating leads: ${rowCount} created`
     );
   });
 
-function writeContacts(amount, AccountName, url) {
-  for (let i = 0; i < amount; i += 1) {
-    const FirstName = faker.person.firstName();
-    const LastName = faker.person.lastName();
+function writeContacts(AccountName, url) {
+  const FirstName = faker.person.firstName();
+  const LastName = faker.person.lastName();
 
-    const Email = FirstName.toLowerCase()[0] + LastName.toLowerCase() + `@${url}`;
+  const Email = FirstName.toLowerCase()[0] + LastName.toLowerCase() + `@${url}`;
 
-    const payload = {
-      FirstName,
-      LastName,
-      Email,
-      Company: AccountName,
-      Industry: faker.helpers.arrayElement(industries),
-      OwnerId: faker.helpers.arrayElement(USER_IDS),
-      Title: faker.person.jobTitle(),
-      Phone: faker.phone.number('###-###-####'),
-    };
-    stream.write(payload);
-  }
+  const payload = {
+    FirstName,
+    LastName,
+    Email,
+    Company: AccountName,
+    Industry: faker.helpers.arrayElement(industries),
+    OwnerId: faker.helpers.arrayElement(USER_IDS),
+    Title: faker.person.jobTitle(),
+    Phone: faker.phone.number('###-###-####'),
+  };
+  stream.write(payload);
 }

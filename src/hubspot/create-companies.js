@@ -39,10 +39,6 @@ function createRandomAccount() {
   // const company = MEMOIZE
   //   ? memoizedCompanies(companies)
   //   : faker.helpers.arrayElement(companies);
-  const ratingTypes = ['Hot', 'Warm', 'Cold'];
-  const slaTypes = ['Gold', 'Silver', 'Platinum', 'Bronze'];
-  const CustomerPriority__c = ['High', 'Low', 'Medium'];
-  const UpsellOpportunity__c = ['Maybe', 'No', 'Yes'];
 
   const Address = faker.location.streetAddress(false);
   const City = faker.location.city();
@@ -70,7 +66,6 @@ function createRandomAccount() {
     Domain: buildDomain(name),
     CompanyOwner: faker.helpers.arrayElement(USER_IDS),
     Type: faker.helpers.arrayElement(accountTypes),
-    // Rating: faker.helpers.arrayElement(ratingTypes),
     Number: faker.phone.number('###-###-###'),
     NumberOfEmployees: faker.number.int({ min: 100, max: 3000 }),
     Address,

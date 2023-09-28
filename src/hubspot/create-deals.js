@@ -1,42 +1,22 @@
 import { faker } from '@faker-js/faker';
 import { format } from '@fast-csv/format';
-import { parseFile } from '@fast-csv/parse';
 import { createWriteStream } from 'fs';
-import { USER_IDS } from '../utils.js';
 import { DateTime } from 'luxon';
+import { USER_IDS } from '../utils.js';
 
-const ingestFileName = 'extracted-accounts.csv';
-const oppyCSV = createWriteStream('hs-deals.csv');
-
+const dealsCSV = createWriteStream('hs-deal.csv');
 const stream = format({ headers: true });
-stream.pipe(oppyCSV);
-
-
-
-// Build up account id and names from SF account export
-let numberOfOppiesCreated = 0;
-const accountIdsAndNames = [];
-parseFile(ingestFileName)
-  .on('error', (error) => console.error(error))
-  .on('data', (row) => {
-    const [ID, NAME] = row;
-    const numberOfOpps = faker.number.int({ min: 1, max: 2 });
-    numberOfOppiesCreated += numberOfOpps
-    if (ID !== 'ID') accountIdsAndNames.push(buildOpps(numberOfOpps, NAME, ID));
-  })
-  .on('end', (rowCount) => {
-    console.log(`${rowCount} account rows processed`);
-    console.log(
-      `finished creating opportunities: ${numberOfOppiesCreated} created`
-    );
-  });
+stream.pipe(dealsCSV);
 
 const buildDumbName = (name) => {
-  const extraOppyTitle = `${faker.company.catchPhraseAdjective()} ${faker.word.noun()}`
-  return `${name} - ${extraOppyTitle}`.replace(/(^|[\s-])\S/g, (match) => match.toUpperCase())
+  const extraOppyTitle = `${faker.company.catchPhraseAdjective()} ${faker.word.noun()}`;
+  return `${name} - ${extraOppyTitle}`.replace(/(^|[\s-])\S/g, (match) =>
+    match.toUpperCase()
+  );
 };
 
-function buildOpps(amount, accountName, AccountId) {
+
+export const buildDeals = (amount, accountName) => {
   const types = [
     'New Business',
     'Existing Business'
@@ -64,7 +44,6 @@ function buildOpps(amount, accountName, AccountId) {
     const DealName = buildDumbName(accountName)
     const CloseDate = faker.date.between(closeDateOptions).toISOString();
     stream.write({
-      // AccountId,
       CloseDate, // closedate
       DealName, // dealname
       DealStage, // dealstage

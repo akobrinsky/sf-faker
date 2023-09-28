@@ -8,8 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-accounts": "node src/create-accounts.js",
     "build-oppies-and-accounts": "node src/create-oppies.js && node src/create-contacts.js",
-    "login": "sfdx auth:web:login",
-    "get-access-token": "sfdx force:org:display --targetusername $1"
+    "bulk": "node src/prompts.js"
   },
   "author": "Aryeh Kobrinsky",
   "license": "ISC",
@@ -17,9 +16,13 @@
     "@faker-js/faker": "^8.0.1",
     "@fast-csv/format": "^4.3.5",
     "@fast-csv/parse": "^4.3.6",
+    "axios": "^1.4.0",
     "luxon": "^3.3.0"
   },
   "dependencies": {
-    "dotenv": "^16.1.4"
+    "@inquirer/prompts": "^3.0.4",
+    "dotenv": "^16.1.4",
+    "enforce-unique": "^1.1.1",
+    "inquirer-date-prompt": "^3.0.0"
   }
 }

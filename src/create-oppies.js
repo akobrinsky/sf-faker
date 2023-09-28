@@ -13,7 +13,8 @@ stream.pipe(oppyCSV);
 
 
 
-// Build up account id and names from SF account export
+export const createTheOppies = (startDate, endDate) => {
+  // Build up account id and names from SF account export
 let numberOfOppiesCreated = 0;  
 const accountIdsAndNames = [];
 parseFile(ingestFileName)
@@ -22,7 +23,7 @@ parseFile(ingestFileName)
     const [ID, NAME] = row;
     const numberOfOpps = faker.number.int({ min: 1, max: 2 });
     numberOfOppiesCreated += numberOfOpps
-    if (ID !== 'ID') accountIdsAndNames.push(buildOpps(numberOfOpps, NAME, ID));
+    if (ID !== 'ID') accountIdsAndNames.push(buildOpps(numberOfOpps, NAME, ID, startDate, endDate));
   })
   .on('end', (rowCount) => {
     console.log(`${rowCount} account rows processed`);
@@ -30,13 +31,14 @@ parseFile(ingestFileName)
       `finished creating opportunities: ${numberOfOppiesCreated} created`
     );
   });
+}
 
 const buildDumbName = (name) => {
   const extraOppyTitle = `${faker.company.catchPhraseAdjective()} ${faker.word.noun()}`
   return `${name} - ${extraOppyTitle}`.replace(/(^|[\s-])\S/g, (match) => match.toUpperCase())
 };
 
-function buildOpps(amount, accountName, AccountId) {
+function buildOpps(amount, accountName, AccountId, startDate, endDate) {
   const types = [
     'Existing Customer - Upgrade',
     'Existing Customer - Replacement',
@@ -54,17 +56,24 @@ function buildOpps(amount, accountName, AccountId) {
   ];
   for (let i = 0; i < amount; i += 1) {
     const StageName = faker.helpers.weightedArrayElement(stages);
+    const from = DateTime.fromSeconds(startDate)
+    console.log({from});
+    const end = DateTime.fromSeconds(endDate)
+    console.log(from.toISO());
+    console.log(end.toISO());
     const closeDateOptions = StageName === 'Closed Won' || StageName === 'Closed Lost'
       ? {
-          from: DateTime.local().minus({ years: 2 }),
+          from,
           to: DateTime.local().minus({ days: 1 }),
         }
       : {
           from: DateTime.local().plus({ days: 2 }),
-          to: DateTime.local().plus({ years: 2 }),
+          to: end
         };
+        console.log({ foo: DateTime.local().minus({ days: 1 })});
     const Name = buildDumbName(accountName)
     const CloseDate = faker.date.between(closeDateOptions).toISOString();
+    console.log({CloseDate});
     stream.write({
       AccountId,
       CloseDate,

@@ -340,45 +340,11 @@ const failedResults = async (id) => {
   }
 };
 
-const Foo = new BulkStuff();
+// const Foo = new BulkStuff();
 
 // await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
 
 // const failed = await Foo.getBatchResults('750Ho00000SU7CO');
-// console.log(failed);
-
-//  Opportunity
-await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
-await Foo.purgeAllOfTheThings()
-// const failed = await Foo.failedResults('750Ho00000SU6mG');
-// console.log(failed);
-
-//  Contact
-// await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
-// await Foo.createQueryJob(queryAndFileLookup.Contact.query);
-// await Foo.checkJob('Contact');
-// await Foo.createDeleteJob('Contact');
-// await Foo.uploadFile('./extracted-contacts.csv');
-// await Foo.completeInsertJob();
-
-//  Lead
-// await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
-// await Foo.createQueryJob(queryAndFileLookup.Lead.idQuery);
-// await Foo.checkJob('Lead');
-// await Foo.createDeleteJob('Lead');
-// await Foo.uploadFile('./extracted-leads.csv');
-// await Foo.completeInsertJob();
-// const failed = await Foo.failedResults('750Ho00000SU6ix');
-// console.log(failed);
-
-//  Case
-// await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
-// await Foo.createQueryJob(queryAndFileLookup.Case.idQuery);
-// await Foo.checkJob('Case');
-// await Foo.createDeleteJob('Case');
-// await Foo.uploadFile('./extracted-cases.csv');
-// await Foo.completeInsertJob();
-// const failed = await Foo.failedResults('750Ho00000SU6ix');
 // console.log(failed);
 
 // await Foo.closeJob(Foo.job.id)

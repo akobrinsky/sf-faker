@@ -1,18 +1,47 @@
 import { input, confirm, select } from '@inquirer/prompts';
 import { createAccounts } from './create-accounts.js';
-import inquirer from "inquirer";
-import DatePrompt from "inquirer-date-prompt";
+import { createTheOppies } from './create-oppies.js'
+import inquirer from 'inquirer';
+import DatePrompt from 'inquirer-date-prompt';
 
-inquirer.registerPrompt("date", DatePrompt);
-
+inquirer.registerPrompt('date', DatePrompt);
 
 import { BulkStuff, queryAndFileLookup } from './bulk_api.js';
 
-const email = await input({ message: "What's your SF dev instance email?" });
-
+// const email = await input({ message: "What's your SF dev instance email?" });
+const email = false;
+const createOppies = await confirm({
+  message: 'Hey there friend, would you like to make some oppiez???? 🤑🤑🤑🤑🤑',
+});
+if (createOppies) {
+  const foo = await inquirer.prompt({
+    type: 'date',
+    name: 'Start',
+    message: '',
+    prefix: ' 🌎 ',
+    filter: (d) => Math.floor(d.getTime() / 1000),
+    locale: 'en-US',
+    format: { month: 'short', hour: undefined, minute: undefined },
+    clearable: true,
+  });
+  const whatever = await inquirer.prompt({
+    type: 'date',
+    name: 'End',
+    message: '',
+    prefix: ' 🌎 ',
+    filter: (d) => Math.floor(d.getTime() / 1000),
+    locale: 'en-US',
+    format: { month: 'short', hour: undefined, minute: undefined },
+    clearable: true,
+  });
+  console.log(foo);
+  const { Start } = foo
+  const { End } = whatever
+  createTheOppies(Start, End)
+}
 if (email) {
   const Foo = new BulkStuff();
-  
+
   await Foo.loginToSalesforce();
   await Foo.setupEnvironment(email);
 
@@ -23,8 +52,9 @@ if (email) {
         {
           name: 'Purge accounts',
           value: 'purge',
-          description: 'Purge all accounts for this SF dev instance... note that this wipes out contacts and opportunities as well!',
-          disabled: disablePurge
+          description:
+            'Purge all accounts for this SF dev instance... note that this wipes out contacts and opportunities as well!',
+          disabled: disablePurge,
         },
         {
           name: 'Create accounts',
@@ -36,45 +66,43 @@ if (email) {
 
     if (result === 'purge') {
       // TO-DO: purge accounts then trigger the prompt again
-      console.log('purging...')
-      result = await buildChoices(true)
+      console.log('purging...');
+      result = await buildChoices(true);
     }
     if (result === 'create_accounts') {
-      return result
+      return result;
     }
-  }
+  };
 
-  let answer = await buildChoices()
+  let answer = await buildChoices();
 
   if (answer === 'create_accounts') {
-    const extractUserIds = await confirm({ message: "Extract User Ids to map to accounts and oppies" });
-    
+    const extractUserIds = await confirm({
+      message: 'Extract User Ids to map to accounts and oppies',
+    });
+
     if (extractUserIds) {
       // get and set user ids
       await Foo.createQueryJob(queryAndFileLookup.user.query);
       await Foo.checkJob('user');
     }
-  
+
     // const numAccounts = await input({ message: "How many accounts would you like to create?" });
 
     // const foo = await input({ message: "How many SF Instances would you like to feed 🥑🥕🥩🍍" });
     // const foo1 = await input({ message: "How many leads would you like to create?" });
     // const foo2 = await confirm({ message: "Do you want to create some fresh oppies?" });
-    
 
-
-    
     // if (numAccounts > 0) {
     //   // Write new Accounts to csv
     //   createAccounts(numAccounts);
-  
+
     //   // Upload new accounts
     //   // await Foo.createQueryJob(queryAndFileLookup.account.query);
     //   // await Foo.checkJob('account');
     //   console.log('etc');
     // }
   }
-  
 } else {
-  console.log('nothing to do then, ttfn');
+  console.log('hell yeah... way to go my friend');
 }

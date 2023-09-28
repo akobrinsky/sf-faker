@@ -8,7 +8,9 @@ import {
 } from './utils.js';
 import fs from 'fs';
 import { createAccounts } from './create-accounts.js';
+import { createTheOppies } from './create-oppies.js';
 import { exec } from 'child_process';
+import { createTheContacts } from './create-contacts.js';
 
 export const queryAndFileLookup = {
   User: {
@@ -110,11 +112,30 @@ export class BulkStuff {
       const { data } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}`
       );
-      console.log(data);
+      console.log(`checking job progress: ${this.jobId}`);
       if (data.state !== 'JobComplete') await this.checkJob(table);
       else {
         await this.getJobResults(table);
       }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async checkJobProgress() {
+    function timeout(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+    try {
+      const { data } = await axios.get(
+        `/services/data/v58.0/jobs/ingest/${this.job.id}`
+      );
+      console.log(`checking ingest job progress: ${this.job.id}`);
+      if (data.state !== 'JobComplete') {
+        await timeout(500)
+        return this.checkJobProgress();
+      } 
+      return data.state;
     } catch (err) {
       console.log(err);
     }
@@ -138,7 +159,6 @@ export class BulkStuff {
       const ids = await getIDsFromCSV(queryAndFileLookup[table].file);
       if (table === 'Account') this.accountId = ids;
       if (table === 'User') this.userIDs = ids;
-      // readAndWriteByProperty(table, ids);
     } catch (err) {
       errorWrapper(err);
     }
@@ -308,6 +328,65 @@ export class BulkStuff {
     await this.uploadFile(queryAndFileLookup.Account.file);
     await this.completeInsertJob();
   }
+
+  async createAndUploadAccounts(amount = 500) {
+    // extract userids to map to accounts
+    await this.createQueryJob(queryAndFileLookup.User.query);
+    await this.checkJob('User');
+
+    // write the accounts to csv with mapped user ids
+    createAccounts(amount, this.userIDs);
+
+    // upload 'em
+    await this.createJob('Account');
+    await this.uploadFile('./accounts-one.csv');
+    await this.completeInsertJob();
+
+    const foo = await this.checkJobProgress();
+
+    if (foo) {
+      await this.createAndUploadOppiesAndAccounts()
+      await this.createAndUploadContacts()
+    }
+  }
+
+  async createAndUploadOppiesAndAccounts() {
+    await this.createQueryJob(queryAndFileLookup.Account.query);
+    await this.checkJob('Account');
+
+    // write the accounts to csv with mapped user ids
+    createTheOppies(1664376515, 1727534915, this.userIDs);
+
+    // upload 'em
+    await this.createJob('Opportunity');
+    await this.uploadFile('./oppies.csv');
+    await this.completeInsertJob();
+
+    const foo = await this.checkJobProgress();
+    if (foo) {
+      console.log(
+        'Finished processing opportunity ingest',
+        foo
+      );
+    }
+  }
+  async createAndUploadContacts() {
+    // write the accounts to csv with mapped user ids
+    createTheContacts(this.userIDs);
+
+    // upload 'em
+    await this.createJob('Contact');
+    await this.uploadFile('./contacts.csv');
+    await this.completeInsertJob();
+
+    const foo = await this.checkJobProgress();
+    if (foo) {
+      console.log(
+        'Finished processing contact ingest',
+        foo
+      );
+    }
+  }
 }
 
 const listObjectInfo = async (object, query) => {
@@ -340,16 +419,11 @@ const failedResults = async (id) => {
   }
 };
 
-// const Foo = new BulkStuff();
+const Foo = new BulkStuff();
 
 // await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
-
+await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
+await Foo.createAndUploadAccounts();
+// await Foo.purgeAllOfTheThings();
 // const failed = await Foo.getBatchResults('750Ho00000SU7CO');
 // console.log(failed);
-
-// await Foo.closeJob(Foo.job.id)
-// await Foo.createDeleteJob('Opportunity');
-// await Foo.createDeleteJob('Opportunity');
-// await Foo.createDeleteJob('Account');
-// await Foo.createQueryJob(queryAndFileLookup.Lead.query);
-// await Foo.checkJob('Lead');

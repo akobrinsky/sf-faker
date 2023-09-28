@@ -117,7 +117,8 @@ const readAndWriteByProperty = (
   value,
   filename = './credentials.json'
 ) => {
-  const current = JSON.parse(readFileSync(filename));
+  const current = JSON.parse(readFileSync(filename)) || {};
+  console.log({current});
   current[property] = value;
   writeFileSync(filename, JSON.stringify(current));
   return current;

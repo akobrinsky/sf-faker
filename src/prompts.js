@@ -10,35 +10,42 @@ import { BulkStuff, queryAndFileLookup } from './bulk_api.js';
 
 // const email = await input({ message: "What's your SF dev instance email?" });
 const email = false;
-const createOppies = await confirm({
-  message: 'Hey there friend, would you like to make some oppiez???? 🤑🤑🤑🤑🤑',
-});
-if (createOppies) {
+// const createOppies = await confirm({
+//   message: 'Hey there friend, would you like to make some oppiez???? 🤑🤑🤑🤑🤑',
+// });
+const initialStart = new Date()
+initialStart.setFullYear(initialStart.getFullYear() - 1)
+
+const initialEnd = new Date()
+
+initialEnd.setFullYear(initialEnd.getFullYear() + 1)
   const foo = await inquirer.prompt({
     type: 'date',
     name: 'Start',
-    message: '',
-    prefix: ' 🌎 ',
+    message: 'Start date',
+    prefix: '📆',
     filter: (d) => Math.floor(d.getTime() / 1000),
     locale: 'en-US',
     format: { month: 'short', hour: undefined, minute: undefined },
     clearable: true,
+    default: initialStart
   });
   const whatever = await inquirer.prompt({
     type: 'date',
     name: 'End',
-    message: '',
-    prefix: ' 🌎 ',
+    message: 'End date',
+    prefix: '📆',
     filter: (d) => Math.floor(d.getTime() / 1000),
     locale: 'en-US',
     format: { month: 'short', hour: undefined, minute: undefined },
     clearable: true,
+    default: initialEnd
   });
-  console.log(foo);
   const { Start } = foo
   const { End } = whatever
-  createTheOppies(Start, End)
-}
+  console.log({Start, End});
+  
+  createTheOppies(Start, End, ['005Ho0000090mJaIAI', '005Ho0000090m2MIAQ'])
 if (email) {
   const Foo = new BulkStuff();
 

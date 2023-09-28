@@ -3,9 +3,8 @@ import { format } from '@fast-csv/format';
 import { parseFile } from '@fast-csv/parse';
 import { createWriteStream } from 'fs';
 import { USER_IDS } from './utils.js';
-import { DateTime } from 'luxon';
 
-const ingestFileName = 'accounts-nextbatch.csv';
+const ingestFileName = 'extracted-accounts.csv';
 const oppyCSV = createWriteStream('leads.csv');
 
 const stream = format({ headers: true });
@@ -44,26 +43,23 @@ const industries = [
   'Transportation',
 ];
 
-let numberOfContactsCreated = 0;
-parseFile(ingestFileName)
-  .on('error', (error) => console.error(error))
-  .on('data', (row) => {
-    const [accountId, AccountName, accountDomain] = row;
-    if (accountId !== 'ID') {
-      faker.helpers.maybe(
-        () => writeContacts(AccountName, accountDomain),
-        { probability: 0.30 }
-      );
-    }
-  })
-  .on('end', (rowCount) => {
-    console.log(`${rowCount} account rows processed`);
-    console.log(
-      `finished creating leads: ${rowCount} created`
-    );
-  });
+export const createTheLeads = (userIds) => {
+  parseFile(ingestFileName)
+    .on('error', (error) => console.error(error))
+    .on('data', (row) => {
+      const [accountId, AccountName, accountDomain] = row;
+      if (accountId !== 'ID') {
+        faker.helpers.maybe(() => writeLeads(AccountName, accountDomain, userIds), {
+          probability: 0.3,
+        });
+      }
+    })
+    .on('end', () => {
+      console.log(`Finished creating leads`);
+    });
+};
 
-function writeContacts(AccountName, url) {
+function writeLeads(AccountName, url, userIds) {
   const FirstName = faker.person.firstName();
   const LastName = faker.person.lastName();
 
@@ -75,7 +71,7 @@ function writeContacts(AccountName, url) {
     Email,
     Company: AccountName,
     Industry: faker.helpers.arrayElement(industries),
-    OwnerId: faker.helpers.arrayElement(USER_IDS),
+    OwnerId: faker.helpers.arrayElement(userIds),
     Title: faker.person.jobTitle(),
     Phone: faker.phone.number('###-###-####'),
   };

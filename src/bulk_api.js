@@ -11,7 +11,11 @@ import { createAccounts } from './create-accounts.js';
 import { createTheOppies } from './create-oppies.js';
 import { exec } from 'child_process';
 import { createTheContacts } from './create-contacts.js';
+import { createTheLeads } from './create-leads.js';
 
+function timeout(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 export const queryAndFileLookup = {
   User: {
     query: `SELECT Id FROM User WHERE Email LIKE '%${EMAIL_DOMAIN}'`,
@@ -112,9 +116,11 @@ export class BulkStuff {
       const { data } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}`
       );
-      console.log(`checking job progress: ${this.jobId}`);
-      if (data.state !== 'JobComplete') await this.checkJob(table);
-      else {
+      console.log(`Checking ${table} job progress: ${this.jobId}`);
+      if (data.state !== 'JobComplete') {
+        await timeout(500);
+        await this.checkJob(table);
+      } else {
         await this.getJobResults(table);
       }
     } catch (err) {
@@ -123,18 +129,15 @@ export class BulkStuff {
   }
 
   async checkJobProgress() {
-    function timeout(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    }
     try {
       const { data } = await axios.get(
         `/services/data/v58.0/jobs/ingest/${this.job.id}`
       );
       console.log(`checking ingest job progress: ${this.job.id}`);
       if (data.state !== 'JobComplete') {
-        await timeout(500)
+        await timeout(500);
         return this.checkJobProgress();
-      } 
+      }
       return data.state;
     } catch (err) {
       console.log(err);
@@ -299,34 +302,39 @@ export class BulkStuff {
     await this.createDeleteJob('Lead');
     await this.uploadFile(queryAndFileLookup.Lead.file);
     await this.completeInsertJob();
-
+    console.log('All Leads have been deleted');
+    
     //  Opportunity
     await this.createQueryJob(queryAndFileLookup.Opportunity.idQuery);
     await this.checkJob('Opportunity');
     await this.createDeleteJob('Opportunity');
     await this.uploadFile(queryAndFileLookup.Opportunity.file);
     await this.completeInsertJob();
-
+    console.log('All Oppies have been deleted');
+    
     //  Case
     await this.createQueryJob(queryAndFileLookup.Case.idQuery);
     await this.checkJob('Case');
     await this.createDeleteJob('Case');
     await this.uploadFile(queryAndFileLookup.Case.file);
     await this.completeInsertJob();
-
+    console.log('All Cases have been deleted');
+    
     //  Contact
     await this.createQueryJob(queryAndFileLookup.Contact.query);
     await this.checkJob('Contact');
     await this.createDeleteJob('Contact');
     await this.uploadFile(queryAndFileLookup.Contact.file);
     await this.completeInsertJob();
-
+    console.log('All Contacts have been deleted');
+    
     //  Account
     await this.createQueryJob(queryAndFileLookup.Account.idQuery);
     await this.checkJob('Account');
     await this.createDeleteJob('Account');
     await this.uploadFile(queryAndFileLookup.Account.file);
     await this.completeInsertJob();
+    console.log('All Accounts have been deleted');
   }
 
   async createAndUploadAccounts(amount = 500) {
@@ -345,8 +353,9 @@ export class BulkStuff {
     const foo = await this.checkJobProgress();
 
     if (foo) {
-      await this.createAndUploadOppiesAndAccounts()
-      await this.createAndUploadContacts()
+      await this.createAndUploadOppiesAndAccounts();
+      await this.createAndUploadContacts();
+      await this.createAndUploadLeads()
     }
   }
 
@@ -364,10 +373,7 @@ export class BulkStuff {
 
     const foo = await this.checkJobProgress();
     if (foo) {
-      console.log(
-        'Finished processing opportunity ingest',
-        foo
-      );
+      console.log('Finished processing opportunity ingest', foo);
     }
   }
   async createAndUploadContacts() {
@@ -381,10 +387,21 @@ export class BulkStuff {
 
     const foo = await this.checkJobProgress();
     if (foo) {
-      console.log(
-        'Finished processing contact ingest',
-        foo
-      );
+      console.log('Finished processing contact ingest');
+    }
+  }
+  async createAndUploadLeads() {
+    // write the accounts to csv with mapped user ids
+    createTheLeads(this.userIDs);
+
+    // upload 'em
+    await this.createJob('Lead');
+    await this.uploadFile('./leads.csv');
+    await this.completeInsertJob();
+
+    const foo = await this.checkJobProgress();
+    if (foo) {
+      console.log('Finished processing lead ingest');
     }
   }
 }
@@ -419,11 +436,11 @@ const failedResults = async (id) => {
   }
 };
 
-const Foo = new BulkStuff();
+// const Foo = new BulkStuff();
 
-// await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
-await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
-await Foo.createAndUploadAccounts();
+// await Foo.loginToSalesforce('aryeh+hans+invite@crossbeam.com');
+// await Foo.setupEnvironment('aryeh+hans+invite@crossbeam.com');
+// await Foo.createAndUploadAccounts();
 // await Foo.purgeAllOfTheThings();
 // const failed = await Foo.getBatchResults('750Ho00000SU7CO');
 // console.log(failed);

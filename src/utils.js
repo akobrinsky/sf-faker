@@ -64,7 +64,7 @@ const processAndWriteFile = (data, fileName) => {
     .on('data', (row) => stream.write(row))
     .on('end', (rowCount) => {
       stream.end();
-      console.log(`${rowCount} rows written to ${fileName}`);
+      // console.log(`${rowCount - 1} rows written to ${fileName}`);
     });
 };
 
@@ -78,7 +78,7 @@ const getIDsFromCSV = (csv) => {
         if (ID.toLowerCase() !== 'id') result.push(ID);
       })
       .on('end', (rowCount) => {
-        console.log(`${rowCount - 1} id rows processed`);
+        // console.log(`${rowCount - 1} id rows processed`);
         resolve(result);
       });
   });

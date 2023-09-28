@@ -86,9 +86,9 @@ export const createAccounts = (numAccounts = 500, userIds) => {
 
   seedAccountsHelper(TOTAL_ACCOUNTS, accountsLookup.one, 100, userIds);
   companyNameLookup = {};
-  seedAccountsHelper(TOTAL_ACCOUNT_TWO, accountsLookup.two, 0, userIds);
+  seedAccountsHelper(TOTAL_ACCOUNT_TWO, accountsLookup.two, 100, userIds);
   companyNameLookup = {};
-  seedAccountsHelper(TOTAL_ACCOUNT_THREE, accountsLookup.three, 0, userIds);
+  seedAccountsHelper(TOTAL_ACCOUNT_THREE, accountsLookup.three, 100, userIds);
   companyNameLookup = {};
 
   // Fill in the rest with seed after match points

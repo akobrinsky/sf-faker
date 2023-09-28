@@ -12,7 +12,7 @@ import { createTheOppies } from './create-oppies.js';
 import { exec } from 'child_process';
 import { createTheContacts } from './create-contacts.js';
 import { createTheLeads } from './create-leads.js';
-
+import FormData from 'form-data'
 function timeout(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -303,7 +303,7 @@ export class BulkStuff {
     await this.uploadFile(queryAndFileLookup.Lead.file);
     await this.completeInsertJob();
     console.log('All Leads have been deleted');
-    
+
     //  Opportunity
     await this.createQueryJob(queryAndFileLookup.Opportunity.idQuery);
     await this.checkJob('Opportunity');
@@ -311,7 +311,7 @@ export class BulkStuff {
     await this.uploadFile(queryAndFileLookup.Opportunity.file);
     await this.completeInsertJob();
     console.log('All Oppies have been deleted');
-    
+
     //  Case
     await this.createQueryJob(queryAndFileLookup.Case.idQuery);
     await this.checkJob('Case');
@@ -319,7 +319,7 @@ export class BulkStuff {
     await this.uploadFile(queryAndFileLookup.Case.file);
     await this.completeInsertJob();
     console.log('All Cases have been deleted');
-    
+
     //  Contact
     await this.createQueryJob(queryAndFileLookup.Contact.query);
     await this.checkJob('Contact');
@@ -327,7 +327,7 @@ export class BulkStuff {
     await this.uploadFile(queryAndFileLookup.Contact.file);
     await this.completeInsertJob();
     console.log('All Contacts have been deleted');
-    
+
     //  Account
     await this.createQueryJob(queryAndFileLookup.Account.idQuery);
     await this.checkJob('Account');
@@ -355,7 +355,7 @@ export class BulkStuff {
     if (foo) {
       await this.createAndUploadOppiesAndAccounts();
       await this.createAndUploadContacts();
-      await this.createAndUploadLeads()
+      await this.createAndUploadLeads();
     }
   }
 
@@ -444,3 +444,78 @@ const failedResults = async (id) => {
 // await Foo.purgeAllOfTheThings();
 // const failed = await Foo.getBatchResults('750Ho00000SU7CO');
 // console.log(failed);
+
+const importRequest = {
+  name: 'HS-Faker Imports',
+  files: [
+    {
+      fileName: 'hs-companies-one.csv',
+      fileFormat: 'CSV',
+      fileImportPage: {
+        hasHeader: 'true',
+        columnMappings: [
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Name',
+            propertyName: 'name',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Company Domain',
+            propertyName: 'domain',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Company Owner',
+            propertyName: 'hubspot_owner_id',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Type',
+            propertyName: 'type',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Phone Number',
+            propertyName: 'phone',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Number of Employees',
+            propertyName: 'numberofemployees',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Street Address',
+            propertyName: 'address',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'City',
+            propertyName: 'city',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'State',
+            propertyName: 'state',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'ZipCode',
+            propertyName: 'zip',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Country',
+            propertyName: 'country',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Annual Revenue',
+            propertyName: 'annualrevenue',
+          },
+        ],
+      },
+    },
+  ],
+};

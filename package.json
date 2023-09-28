@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-accounts": "node src/create-accounts.js",
     "build-oppies-and-accounts": "node src/create-oppies.js && node src/create-contacts.js",
-    "bulk": "node src/prompts.js"
+    "bulk": "node src/prompts.js",
+    "hubspot-bulk": "node src/hubspot/hubspot-prompts.js"
   },
   "author": "Aryeh Kobrinsky",
   "license": "ISC",
@@ -20,8 +21,10 @@
     "luxon": "^3.3.0"
   },
   "dependencies": {
+    "@hubspot/api-client": "^10.0.0",
     "@inquirer/prompts": "^3.0.4",
     "dotenv": "^16.1.4",
-    "inquirer-date-prompt": "^3.0.0"
+    "inquirer-date-prompt": "^3.0.0",
+    "open": "^9.1.0"
   }
 }

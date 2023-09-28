@@ -17,11 +17,24 @@ export const queryAndFileLookup = {
   },
   Account: {
     query: 'SELECT ID, Name, Website FROM Account',
+    idQuery: 'SELECT ID FROM Account',
     file: 'extracted-accounts.csv',
   },
   Lead: {
-    query: 'SELECT ID FROM Lead',
+    idQuery: 'SELECT ID FROM Lead',
     file: 'extracted-leads.csv',
+  },
+  Contact: {
+    query: 'SELECT ID FROM Contact',
+    file: 'extracted-contacts.csv',
+  },
+  Opportunity: {
+    idQuery: 'SELECT ID FROM Opportunity',
+    file: 'extracted-oppies.csv',
+  },
+  Case: {
+    idQuery: 'SELECT ID FROM Case',
+    file: 'extracted-cases.csv',
   },
 };
 
@@ -30,7 +43,7 @@ export class BulkStuff {
     this.jobId = null;
     this.results = null;
     this.job = null;
-    this.userIDs = null
+    this.userIDs = null;
   }
 
   async createQueryJob(query) {
@@ -82,7 +95,7 @@ export class BulkStuff {
         const { accessToken, instanceUrl } = JSON.parse(stdout).result;
 
         const authBearer = `Bearer ${accessToken}`;
-        console.log({accessToken, instanceUrl});
+        console.log({ accessToken, instanceUrl });
         axios.defaults.baseURL = instanceUrl;
         axios.defaults.headers = {
           Authorization: authBearer,
@@ -112,20 +125,20 @@ export class BulkStuff {
       const { data, headers } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}/results`
       );
-      console.log(headers);
+      // console.log(headers);
       processAndWriteFile(data, queryAndFileLookup[table].file);
-      const locator = headers['sforce-locator']
-
-      if (locator) {
-        const { data, headers } = await axios.get(
-          `/services/data/v58.0/jobs/query/${this.jobId}/results?locator=${locator}`
-        );
-        processAndWriteFile(data, 'accounts-nextbatch.csv');
-      }
+      const locator = headers['sforce-locator'];
+      // TODO - append to same csv
+      // if (locator !== null) {
+      //   const { data, headers } = await axios.get(
+      //     `/services/data/v58.0/jobs/query/${this.jobId}/results?locator=${locator}`
+      //   );
+      //   processAndWriteFile(data, 'accounts-nextbatch.csv');
+      // }
       const ids = await getIDsFromCSV(queryAndFileLookup[table].file);
-      if (table === 'Account') this.accountId = ids
-      if (table === 'User') this.userIDs = ids
-      readAndWriteByProperty(table, ids);
+      if (table === 'Account') this.accountId = ids;
+      if (table === 'User') this.userIDs = ids;
+      // readAndWriteByProperty(table, ids);
     } catch (err) {
       errorWrapper(err);
     }
@@ -244,6 +257,57 @@ export class BulkStuff {
       console.log(err);
     }
   }
+
+  async getBatchResults(id) {
+    const url = `/services/data/v58.0/jobs/ingest/${id}/failedResults/`;
+    try {
+      const foo = await axios.get(url, {
+        headers: {
+          'Content-Type': 'text/csv',
+        },
+      });
+      return foo;
+    } catch (err) {
+      errorWrapper(err);
+    }
+  }
+
+  async purgeAllOfTheThings() {
+    //  Lead
+    await this.createQueryJob(queryAndFileLookup.Lead.idQuery);
+    await this.checkJob('Lead');
+    await this.createDeleteJob('Lead');
+    await this.uploadFile(queryAndFileLookup.Lead.file);
+    await this.completeInsertJob();
+
+    //  Opportunity
+    await this.createQueryJob(queryAndFileLookup.Opportunity.idQuery);
+    await this.checkJob('Opportunity');
+    await this.createDeleteJob('Opportunity');
+    await this.uploadFile(queryAndFileLookup.Opportunity.file);
+    await this.completeInsertJob();
+
+    //  Case
+    await this.createQueryJob(queryAndFileLookup.Case.idQuery);
+    await this.checkJob('Case');
+    await this.createDeleteJob('Case');
+    await this.uploadFile(queryAndFileLookup.Case.file);
+    await this.completeInsertJob();
+
+    //  Contact
+    await this.createQueryJob(queryAndFileLookup.Contact.query);
+    await this.checkJob('Contact');
+    await this.createDeleteJob('Contact');
+    await this.uploadFile(queryAndFileLookup.Contact.file);
+    await this.completeInsertJob();
+
+    //  Account
+    await this.createQueryJob(queryAndFileLookup.Account.idQuery);
+    await this.checkJob('Account');
+    await this.createDeleteJob('Account');
+    await this.uploadFile(queryAndFileLookup.Account.file);
+    await this.completeInsertJob();
+  }
 }
 
 const listObjectInfo = async (object, query) => {
@@ -278,13 +342,48 @@ const failedResults = async (id) => {
 
 const Foo = new BulkStuff();
 
-// await Foo.loginToSalesforce('aryeh+holverscaletest+admin@crossbeam.com');
-await Foo.setupEnvironment('aryeh+holverscaletest+superadmin@crossbeam.com');
-// const result = await Foo.createJob('Lead');
-// const result = await Foo.createDeleteJob('Lead');
-const blah = await Foo.uploadFile('./leads.csv');
-// const whatever = await Foo.completeInsertJob();
-const failed = await Foo.failedResults('750Hp00001FRabV');
-console.log(failed);
+// await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
+
+// const failed = await Foo.getBatchResults('750Ho00000SU7CO');
+// console.log(failed);
+
+//  Opportunity
+await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
+await Foo.purgeAllOfTheThings()
+// const failed = await Foo.failedResults('750Ho00000SU6mG');
+// console.log(failed);
+
+//  Contact
+// await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
+// await Foo.createQueryJob(queryAndFileLookup.Contact.query);
+// await Foo.checkJob('Contact');
+// await Foo.createDeleteJob('Contact');
+// await Foo.uploadFile('./extracted-contacts.csv');
+// await Foo.completeInsertJob();
+
+//  Lead
+// await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
+// await Foo.createQueryJob(queryAndFileLookup.Lead.idQuery);
+// await Foo.checkJob('Lead');
+// await Foo.createDeleteJob('Lead');
+// await Foo.uploadFile('./extracted-leads.csv');
+// await Foo.completeInsertJob();
+// const failed = await Foo.failedResults('750Ho00000SU6ix');
+// console.log(failed);
+
+//  Case
+// await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
+// await Foo.createQueryJob(queryAndFileLookup.Case.idQuery);
+// await Foo.checkJob('Case');
+// await Foo.createDeleteJob('Case');
+// await Foo.uploadFile('./extracted-cases.csv');
+// await Foo.completeInsertJob();
+// const failed = await Foo.failedResults('750Ho00000SU6ix');
+// console.log(failed);
+
+// await Foo.closeJob(Foo.job.id)
+// await Foo.createDeleteJob('Opportunity');
+// await Foo.createDeleteJob('Opportunity');
+// await Foo.createDeleteJob('Account');
 // await Foo.createQueryJob(queryAndFileLookup.Lead.query);
 // await Foo.checkJob('Lead');

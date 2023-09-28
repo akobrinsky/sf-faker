@@ -24,7 +24,8 @@
     "@hubspot/api-client": "^10.0.0",
     "@inquirer/prompts": "^3.0.4",
     "dotenv": "^16.1.4",
-    "inquirer-date-prompt": "^3.0.0",
-    "open": "^9.1.0"
+    "open": "^9.1.0",
+    "enforce-unique": "^1.1.1",
+    "inquirer-date-prompt": "^3.0.0"
   }
 }

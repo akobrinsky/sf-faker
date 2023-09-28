@@ -8,8 +8,14 @@ import {
 } from './utils.js';
 import fs from 'fs';
 import { createAccounts } from './create-accounts.js';
+import { createTheOppies } from './create-oppies.js';
 import { exec } from 'child_process';
+import { createTheContacts } from './create-contacts.js';
+import { createTheLeads } from './create-leads.js';
 
+function timeout(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 export const queryAndFileLookup = {
   User: {
     query: `SELECT Id FROM User WHERE Email LIKE '%${EMAIL_DOMAIN}'`,
@@ -17,11 +23,24 @@ export const queryAndFileLookup = {
   },
   Account: {
     query: 'SELECT ID, Name, Website FROM Account',
+    idQuery: 'SELECT ID FROM Account',
     file: 'extracted-accounts.csv',
   },
   Lead: {
-    query: 'SELECT ID FROM Lead',
+    idQuery: 'SELECT ID FROM Lead',
     file: 'extracted-leads.csv',
+  },
+  Contact: {
+    query: 'SELECT ID FROM Contact',
+    file: 'extracted-contacts.csv',
+  },
+  Opportunity: {
+    idQuery: 'SELECT ID FROM Opportunity',
+    file: 'extracted-oppies.csv',
+  },
+  Case: {
+    idQuery: 'SELECT ID FROM Case',
+    file: 'extracted-cases.csv',
   },
 };
 
@@ -30,7 +49,7 @@ export class BulkStuff {
     this.jobId = null;
     this.results = null;
     this.job = null;
-    this.userIDs = null
+    this.userIDs = null;
   }
 
   async createQueryJob(query) {
@@ -82,7 +101,7 @@ export class BulkStuff {
         const { accessToken, instanceUrl } = JSON.parse(stdout).result;
 
         const authBearer = `Bearer ${accessToken}`;
-        console.log({accessToken, instanceUrl});
+        console.log({ accessToken, instanceUrl });
         axios.defaults.baseURL = instanceUrl;
         axios.defaults.headers = {
           Authorization: authBearer,
@@ -97,11 +116,29 @@ export class BulkStuff {
       const { data } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}`
       );
-      console.log(data);
-      if (data.state !== 'JobComplete') await this.checkJob(table);
-      else {
+      console.log(`Checking ${table} job progress: ${this.jobId}`);
+      if (data.state !== 'JobComplete') {
+        await timeout(500);
+        await this.checkJob(table);
+      } else {
         await this.getJobResults(table);
       }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async checkJobProgress() {
+    try {
+      const { data } = await axios.get(
+        `/services/data/v58.0/jobs/ingest/${this.job.id}`
+      );
+      console.log(`checking ingest job progress: ${this.job.id}`);
+      if (data.state !== 'JobComplete') {
+        await timeout(500);
+        return this.checkJobProgress();
+      }
+      return data.state;
     } catch (err) {
       console.log(err);
     }
@@ -112,20 +149,19 @@ export class BulkStuff {
       const { data, headers } = await axios.get(
         `/services/data/v58.0/jobs/query/${this.jobId}/results`
       );
-      console.log(headers);
+      // console.log(headers);
       processAndWriteFile(data, queryAndFileLookup[table].file);
-      const locator = headers['sforce-locator']
-
-      if (locator) {
-        const { data, headers } = await axios.get(
-          `/services/data/v58.0/jobs/query/${this.jobId}/results?locator=${locator}`
-        );
-        processAndWriteFile(data, 'accounts-nextbatch.csv');
-      }
+      const locator = headers['sforce-locator'];
+      // TODO - append to same csv
+      // if (locator !== null) {
+      //   const { data, headers } = await axios.get(
+      //     `/services/data/v58.0/jobs/query/${this.jobId}/results?locator=${locator}`
+      //   );
+      //   processAndWriteFile(data, 'accounts-nextbatch.csv');
+      // }
       const ids = await getIDsFromCSV(queryAndFileLookup[table].file);
-      if (table === 'Account') this.accountId = ids
-      if (table === 'User') this.userIDs = ids
-      readAndWriteByProperty(table, ids);
+      if (table === 'Account') this.accountId = ids;
+      if (table === 'User') this.userIDs = ids;
     } catch (err) {
       errorWrapper(err);
     }
@@ -244,6 +280,130 @@ export class BulkStuff {
       console.log(err);
     }
   }
+
+  async getBatchResults(id) {
+    const url = `/services/data/v58.0/jobs/ingest/${id}/failedResults/`;
+    try {
+      const foo = await axios.get(url, {
+        headers: {
+          'Content-Type': 'text/csv',
+        },
+      });
+      return foo;
+    } catch (err) {
+      errorWrapper(err);
+    }
+  }
+
+  async purgeAllOfTheThings() {
+    //  Lead
+    await this.createQueryJob(queryAndFileLookup.Lead.idQuery);
+    await this.checkJob('Lead');
+    await this.createDeleteJob('Lead');
+    await this.uploadFile(queryAndFileLookup.Lead.file);
+    await this.completeInsertJob();
+    console.log('All Leads have been deleted');
+
+    //  Opportunity
+    await this.createQueryJob(queryAndFileLookup.Opportunity.idQuery);
+    await this.checkJob('Opportunity');
+    await this.createDeleteJob('Opportunity');
+    await this.uploadFile(queryAndFileLookup.Opportunity.file);
+    await this.completeInsertJob();
+    console.log('All Oppies have been deleted');
+
+    //  Case
+    await this.createQueryJob(queryAndFileLookup.Case.idQuery);
+    await this.checkJob('Case');
+    await this.createDeleteJob('Case');
+    await this.uploadFile(queryAndFileLookup.Case.file);
+    await this.completeInsertJob();
+    console.log('All Cases have been deleted');
+
+    //  Contact
+    await this.createQueryJob(queryAndFileLookup.Contact.query);
+    await this.checkJob('Contact');
+    await this.createDeleteJob('Contact');
+    await this.uploadFile(queryAndFileLookup.Contact.file);
+    await this.completeInsertJob();
+    console.log('All Contacts have been deleted');
+
+    //  Account
+    await this.createQueryJob(queryAndFileLookup.Account.idQuery);
+    await this.checkJob('Account');
+    await this.createDeleteJob('Account');
+    await this.uploadFile(queryAndFileLookup.Account.file);
+    await this.completeInsertJob();
+    console.log('All Accounts have been deleted');
+  }
+
+  async createAndUploadAccounts(amount = 500) {
+    // extract userids to map to accounts
+    await this.createQueryJob(queryAndFileLookup.User.query);
+    await this.checkJob('User');
+
+    // write the accounts to csv with mapped user ids
+    createAccounts(amount, this.userIDs);
+
+    // upload 'em
+    await this.createJob('Account');
+    await this.uploadFile('./accounts-one.csv');
+    await this.completeInsertJob();
+
+    const foo = await this.checkJobProgress();
+
+    if (foo) {
+      await this.createAndUploadOppiesAndAccounts();
+      await this.createAndUploadContacts();
+      await this.createAndUploadLeads();
+    }
+  }
+
+  async createAndUploadOppiesAndAccounts() {
+    await this.createQueryJob(queryAndFileLookup.Account.query);
+    await this.checkJob('Account');
+
+    // write the accounts to csv with mapped user ids
+    createTheOppies(1664376515, 1727534915, this.userIDs);
+
+    // upload 'em
+    await this.createJob('Opportunity');
+    await this.uploadFile('./oppies.csv');
+    await this.completeInsertJob();
+
+    const foo = await this.checkJobProgress();
+    if (foo) {
+      console.log('Finished processing opportunity ingest', foo);
+    }
+  }
+  async createAndUploadContacts() {
+    // write the accounts to csv with mapped user ids
+    createTheContacts(this.userIDs);
+
+    // upload 'em
+    await this.createJob('Contact');
+    await this.uploadFile('./contacts.csv');
+    await this.completeInsertJob();
+
+    const foo = await this.checkJobProgress();
+    if (foo) {
+      console.log('Finished processing contact ingest');
+    }
+  }
+  async createAndUploadLeads() {
+    // write the accounts to csv with mapped user ids
+    createTheLeads(this.userIDs);
+
+    // upload 'em
+    await this.createJob('Lead');
+    await this.uploadFile('./leads.csv');
+    await this.completeInsertJob();
+
+    const foo = await this.checkJobProgress();
+    if (foo) {
+      console.log('Finished processing lead ingest');
+    }
+  }
 }
 
 const listObjectInfo = async (object, query) => {
@@ -276,15 +436,86 @@ const failedResults = async (id) => {
   }
 };
 
-const Foo = new BulkStuff();
+// const Foo = new BulkStuff();
 
-// await Foo.loginToSalesforce('aryeh+holverscaletest+admin@crossbeam.com');
-await Foo.setupEnvironment('aryeh+holverscaletest+superadmin@crossbeam.com');
-// const result = await Foo.createJob('Lead');
-// const result = await Foo.createDeleteJob('Lead');
-const blah = await Foo.uploadFile('./leads.csv');
-// const whatever = await Foo.completeInsertJob();
-const failed = await Foo.failedResults('750Hp00001FRabV');
-console.log(failed);
-// await Foo.createQueryJob(queryAndFileLookup.Lead.query);
-// await Foo.checkJob('Lead');
+// await Foo.loginToSalesforce('aryeh+hans+invite@crossbeam.com');
+// await Foo.setupEnvironment('aryeh+hans+invite@crossbeam.com');
+// await Foo.createAndUploadAccounts();
+// await Foo.purgeAllOfTheThings();
+// const failed = await Foo.getBatchResults('750Ho00000SU7CO');
+// console.log(failed);
+
+const importRequest = {
+  name: 'HS-Faker Imports',
+  files: [
+    {
+      fileName: 'hs-companies-one.csv',
+      fileFormat: 'CSV',
+      fileImportPage: {
+        hasHeader: 'true',
+        columnMappings: [
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Name',
+            propertyName: 'name',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Company Domain',
+            propertyName: 'domain',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Company Owner',
+            propertyName: 'hubspot_owner_id',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Type',
+            propertyName: 'type',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Phone Number',
+            propertyName: 'phone',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Number of Employees',
+            propertyName: 'numberofemployees',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Street Address',
+            propertyName: 'address',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'City',
+            propertyName: 'city',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'State',
+            propertyName: 'state',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'ZipCode',
+            propertyName: 'zip',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Country',
+            propertyName: 'country',
+          },
+          {
+            columnObjectTypeId: '0-2',
+            columnName: 'Annual Revenue',
+            propertyName: 'annualrevenue',
+          },
+        ],
+      },
+    },
+  ],
+};

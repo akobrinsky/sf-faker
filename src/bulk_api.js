@@ -402,9 +402,9 @@ export class ShmemoDeams {
       await this.createAndUploadContacts();
       await this.createAndUploadLeads();
       const delightLookup = {
-        one: 'LFG!!!!!',
+        one: 'yaaaayyy!!!!',
         two: `live! laugh! love!`,
-        three: `let's goooooo!!!!`
+        three: `LFG!!!!!`
       }
       const whatToPrint = delightLookup[this.currentSfInstance]
       cfonts.say(whatToPrint, {

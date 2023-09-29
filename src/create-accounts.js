@@ -16,7 +16,7 @@ const seedAccountsHelper = (amount, arr, seed, userIds) => {
   uniqueCompanyName = null;
 };
 
-function createRandomAccount(userIds, seed) {
+function createRandomAccount(userIds) {
   const accountTypes = [
     'Prospect',
     'Customer - Channel',
@@ -62,55 +62,67 @@ function createRandomAccount(userIds, seed) {
     }),
   };
 }
-
-const accountsLookup = {
-  one: [],
-  two: [],
-  three: [],
-};
-
-export const createAccounts = (numAccounts = 500, userIds) => {
+// aryeh+sf+full+bob@crossbeam.com
+export const createAccounts = (
+  numAccounts = 500,
+  userIds,
+  sfInstance,
+  seed
+) => {
   const TOTAL_ACCOUNTS = numAccounts;
   const TOTAL_ACCOUNT_TWO = Math.floor(TOTAL_ACCOUNTS * 0.5);
   const TOTAL_ACCOUNT_THREE = Math.floor(TOTAL_ACCOUNTS * 0.3);
 
-  seedAccountsHelper(TOTAL_ACCOUNTS, accountsLookup.one, 100, userIds);
-  companyNameLookup = {};
-  seedAccountsHelper(TOTAL_ACCOUNT_TWO, accountsLookup.two, 100, userIds);
-  companyNameLookup = {};
-  seedAccountsHelper(TOTAL_ACCOUNT_THREE, accountsLookup.three, 100, userIds);
-  companyNameLookup = {};
+  const accountRows = [];
 
-  // Fill in the rest with seed after match points
-  seedAccountsHelper(
-    TOTAL_ACCOUNTS - TOTAL_ACCOUNT_TWO,
-    accountsLookup.two,
-    TOTAL_ACCOUNT_TWO,
-    userIds
-  );
-  seedAccountsHelper(
-    TOTAL_ACCOUNTS - TOTAL_ACCOUNT_THREE,
-    accountsLookup.three,
-    TOTAL_ACCOUNT_THREE,
-    userIds
-  );
-
-  for (const file of ['one', 'two', 'three']) {
-    const fileName = `accounts-${file}.csv`;
-    const csvFile = createWriteStream(fileName);
-    const stream = format({ headers: true });
-    stream.pipe(csvFile);
-
-    accountsLookup[file].forEach((account) => {
-      stream.write(account);
-    });
-    console.log(`${TOTAL_ACCOUNTS} created and written to ${fileName}`);
-
-    stream.end();
+  switch (sfInstance) {
+    case 'one':
+      // fills in all of the things
+      seedAccountsHelper(TOTAL_ACCOUNTS, accountRows, seed, userIds);
+      break;
+    case 'two':
+      // fills in half of the things
+      seedAccountsHelper(TOTAL_ACCOUNT_TWO, accountRows, seed, userIds);
+      break;
+    case 'three':
+      // fills in 30% of the things
+      seedAccountsHelper(TOTAL_ACCOUNT_THREE, accountRows, seed, userIds);
+      break;
+    default:
+      break;
   }
+
+  if (sfInstance === 'two') {
+    // Fill in the rest with seed after match points
+    seedAccountsHelper(
+      TOTAL_ACCOUNTS - TOTAL_ACCOUNT_TWO,
+      accountRows,
+      TOTAL_ACCOUNT_TWO + seed,
+      userIds
+    );
+  } else if (sfInstance === 'three') {
+    seedAccountsHelper(
+      TOTAL_ACCOUNTS - TOTAL_ACCOUNT_THREE,
+      accountRows,
+      TOTAL_ACCOUNT_THREE + seed,
+      userIds
+    );
+  }
+
+  const fileName = `accounts.csv`;
+  const csvFile = createWriteStream(fileName);
+  const stream = format({ headers: true });
+  stream.pipe(csvFile);
+
+  accountRows.forEach((account) => {
+    stream.write(account);
+  });
+  console.log(`${TOTAL_ACCOUNTS} created and written to ${fileName}`);
+
+  stream.end();
 };
-// createAccounts(500, [
-//   '005Ho00000AJeqgIAD',
-//   '005Ho00000AJeLgIAL',
-//   '005Ho00000AJeqqIAD',
-// ]);
+// createAccounts(
+//   500,
+//   ['005Ho00000AJeqgIAD', '005Ho00000AJeLgIAL', '005Ho00000AJeqqIAD'],
+//   'three'
+// );

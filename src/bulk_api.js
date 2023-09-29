@@ -4,7 +4,6 @@ import {
   processAndWriteFile,
   getIDsFromCSV,
   errorWrapper,
-  readAndWriteByProperty,
 } from './utils.js';
 import fs from 'fs';
 import { createAccounts } from './create-accounts.js';
@@ -15,13 +14,13 @@ import { createTheLeads } from './create-leads.js';
 import cfonts from 'cfonts';
 
 const cfontSettings = {
-  align: 'center', // define text alignment
+  align: 'left', // define text alignment
   letterSpacing: 1, // define letter spacing
   lineHeight: 2, // define the line height
   space: true, // define if the output text should have empty lines on top and on the bottom
   gradient: '#306674,#F23251', // define your two gradient colors
   transitionGradient: true, // define if this is a transition between colors directly
-}
+};
 
 function timeout(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,6 +60,26 @@ export class ShmemoDeams {
     this.results = null;
     this.job = null;
     this.userIDs = null;
+    this.numAccounts = 500;
+    this.currentSfInstance = null;
+    this.seedIndex = 100;
+    this.email = null
+  }
+
+  setNumberAccounts(amount) {
+    this.numAccounts = amount;
+  }
+
+  setNumberAccounts(val) {
+    this.seedIndex = val;
+  }
+
+  setEmailAddress(email) {
+    this.email = email
+  }
+
+  setSfInstance(val) {
+    this.currentSfInstance = val
   }
 
   async createQueryJob(query) {
@@ -100,9 +119,9 @@ export class ShmemoDeams {
     spawn('terminal-parrot -delay 50', { shell: true, stdio: 'inherit' });
   }
 
-  async setupEnvironment(email) {
+  async setupEnvironment() {
     return new Promise((resolve) => {
-      const query = `sfdx org:display -o ${email} --json`;
+      const query = `sfdx org:display -o ${this.email} --json`;
       exec(query, (error, stdout, stderr) => {
         if (error) {
           console.error(error);
@@ -113,12 +132,12 @@ export class ShmemoDeams {
           return;
         }
         const { result } = JSON.parse(stdout);
-        
+
         const { accessToken, instanceUrl, username } = result;
         const name = username.split(/[\+@]/)?.at(0);
         if (name.length) {
           cfonts.say(`oh hi, ${name}!`, {
-            ...cfontSettings
+            ...cfontSettings,
           });
         }
 
@@ -358,17 +377,22 @@ export class ShmemoDeams {
     console.log('All Accounts have been deleted');
   }
 
-  async createAndUploadAccounts(amount = 500) {
+  async createAndUploadAccounts() {
     // extract userids to map to accounts
     await this.createQueryJob(queryAndFileLookup.User.query);
     await this.checkJob('User');
 
     // write the accounts to csv with mapped user ids
-    createAccounts(amount, this.userIDs);
+    createAccounts(
+      this.numAccounts,
+      this.userIDs,
+      this.currentSfInstance,
+      this.seedIndex
+    );
 
     // upload 'em
     await this.createJob('Account');
-    await this.uploadFile('./accounts-one.csv');
+    await this.uploadFile('./accounts.csv');
     await this.completeInsertJob();
 
     const foo = await this.checkJobProgress();
@@ -377,11 +401,19 @@ export class ShmemoDeams {
       await this.createAndUploadOppiesAndAccounts();
       await this.createAndUploadContacts();
       await this.createAndUploadLeads();
-      cfonts.say(`LFG!!!!!`, {
-        ...cfontSettings
+      const delightLookup = {
+        one: 'LFG!!!!!',
+        two: `live! laugh! love!`,
+        three: `let's goooooo!!!!`
+      }
+      const whatToPrint = delightLookup[this.currentSfInstance]
+      cfonts.say(whatToPrint, {
+        ...cfontSettings,
       });
-      await timeout(3000)
-      this.releaseTheParrot()
+      await timeout(3000);
+      if (this.setSfInstance === 'three') {
+        this.releaseTheParrot();
+      }
     }
   }
 
@@ -403,13 +435,16 @@ export class ShmemoDeams {
     }
   }
 
-  async uploadOppies(start, end) {
-    // extract userids to map to accounts
-    await this.createQueryJob(queryAndFileLookup.User.query);
-    await this.checkJob('User');
+  async uploadOppies(start, end, amount) {
+    // // extract userids to map to accounts
+    // await this.createQueryJob(queryAndFileLookup.User.query);
+    // await this.checkJob('User');
 
     await this.createQueryJob(queryAndFileLookup.Account.query);
     await this.checkJob('Account');
+
+    // write the accounts to csv with mapped user ids
+    createTheOppies(start, end, this.userIDs, amount);
 
     // upload 'em
     await this.createJob('Opportunity');
@@ -482,10 +517,10 @@ const failedResults = async (id) => {
   }
 };
 
-const Foo = new ShmemoDeams();
-Foo.releaseTheParrot()
+// const Foo = new ShmemoDeams();
+// Foo.releaseTheParrot();
 // await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
-await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
+// await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
 // await Foo.createAndUploadAccounts();
 // await Foo.purgeAllOfTheThings();
 // const failed = await Foo.getBatchResults('750Ho00000SU7CO');

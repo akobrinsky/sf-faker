@@ -411,7 +411,7 @@ export class ShmemoDeams {
         ...cfontSettings,
       });
       await timeout(3000);
-      if (this.setSfInstance === 'three') {
+      if (this.currentSfInstance === 'three') {
         this.releaseTheParrot();
       }
     }

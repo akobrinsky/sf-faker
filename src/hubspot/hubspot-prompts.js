@@ -1,14 +1,11 @@
 import { input, password } from '@inquirer/prompts';
 import { HubSpotBulk } from './bulk_api_hubspot.js';
 import { createAccounts } from './create-companies.js';
-// import { createTheContacts } from './create-contacts.js';
-// import { createTheDeals } from './create-deals.js';
 
 
-// const clientId = await input({ message: "What's your HubSpot App Client Id?" });
-// const clientSecret = await password({ message: "What's your HubSpot App Client Secret?", mask: true });
-const clientId = '43ed9d2f-79dd-4771-8545-e4efb553cdbc';
-const clientSecret = '497c2972-0471-4215-8b4b-2b8c5e4568ef';
+const clientId = await input({ message: "What's your HubSpot App Client Id?" });
+const clientSecret = await password({ message: "What's your HubSpot App Client Secret?", mask: true });
+
 
 if (clientId && clientSecret) {
 
@@ -19,12 +16,8 @@ if (clientId && clientSecret) {
     await hubSpotInstance.getAccessToken(authorizationCode)
     console.log('creating companies ...');
     createAccounts(10)
-    // createTheContacts()
-    // createTheDeals()
     console.log('importing companies to HS ...')
     await hubSpotInstance.importFile('../../hs-companies-one.csv')
-    // await hubSpotInstance.importFile('../../hs-contacts.csv')
-    // await hubSpotInstance.importFile('../../hs-deals.csv')
     console.log('exiting ...');
 
 }

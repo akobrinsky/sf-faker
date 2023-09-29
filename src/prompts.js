@@ -23,10 +23,8 @@ const Foo = new ShmemoDeams();
 const startProcess = async (action) => {
   if (!action) {
     const initialAction = await initialPrompt();
-    console.log('no action');
     return startProcess(initialAction);
   }
-  console.log('wow');
   // let bulkAction
   if (action === 'create_all') {
     await Foo.createAndUploadAccounts();
@@ -39,15 +37,11 @@ const startProcess = async (action) => {
   }
 
   if (action == 'create_oppies') {
-    console.log('weierd');
-    console.log('lfg');
     await promptForOppyDateRange();
     // bulkAction = await initialPrompt();
   }
 
   if (action === 'switch_instance') {
-    // bulkAction = null
-    console.log('switching');
     await setupInstance();
   } else {
     const nextAction = await initialPrompt();
@@ -57,7 +51,6 @@ const startProcess = async (action) => {
 
 const setupInstance = async () => {
   // prompt for sf instance user would like tos etup
-  console.log('here');
   const sfInstance = await select({
     message: 'Which SF instance would you like to setup?',
     choices: [
@@ -89,7 +82,7 @@ const setupInstance = async () => {
   Foo.setEmailAddress(email);
 
   // go through auth and setup bearer token... etc
-  // await Foo.loginToSalesforce()
+  await Foo.loginToSalesforce()
   await Foo.setupEnvironment();
   // bulkAction = await initialPrompt();
   return await startProcess();
@@ -243,6 +236,4 @@ if (false) {
     //   console.log('etc');
     // }
   }
-} else {
-  console.log('hell yeah... way to go my friend');
-}
+} 

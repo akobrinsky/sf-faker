@@ -1,9 +1,18 @@
 import { input, confirm, select } from '@inquirer/prompts';
 import { createAccounts } from './create-accounts.js';
-import { createTheOppies } from './create-oppies.js'
+import { createTheOppies } from './create-oppies.js';
 import inquirer from 'inquirer';
 import DatePrompt from 'inquirer-date-prompt';
+import cfonts from 'cfonts'
 
+cfonts.say(`oh hi hans!!`, {
+  align: 'center', // define text alignment
+  letterSpacing: 1, // define letter spacing
+  lineHeight: 2, // define the line height
+  space: true, // define if the output text should have empty lines on top and on the bottom
+  gradient: '#306674,#F23251', // define your two gradient colors
+  transitionGradient: true, // define if this is a transition between colors directly
+});
 inquirer.registerPrompt('date', DatePrompt);
 
 import { BulkStuff, queryAndFileLookup } from './bulk_api.js';
@@ -13,39 +22,39 @@ const email = false;
 // const createOppies = await confirm({
 //   message: 'Hey there friend, would you like to make some oppiez???? 🤑🤑🤑🤑🤑',
 // });
-const initialStart = new Date()
-initialStart.setFullYear(initialStart.getFullYear() - 1)
+const initialStart = new Date();
+initialStart.setFullYear(initialStart.getFullYear() - 1);
 
-const initialEnd = new Date()
+const initialEnd = new Date();
 
-initialEnd.setFullYear(initialEnd.getFullYear() + 1)
-  const foo = await inquirer.prompt({
-    type: 'date',
-    name: 'Start',
-    message: 'Start date',
-    prefix: '📆',
-    filter: (d) => Math.floor(d.getTime() / 1000),
-    locale: 'en-US',
-    format: { month: 'short', hour: undefined, minute: undefined },
-    clearable: true,
-    default: initialStart
-  });
-  const whatever = await inquirer.prompt({
-    type: 'date',
-    name: 'End',
-    message: 'End date',
-    prefix: '📆',
-    filter: (d) => Math.floor(d.getTime() / 1000),
-    locale: 'en-US',
-    format: { month: 'short', hour: undefined, minute: undefined },
-    clearable: true,
-    default: initialEnd
-  });
-  const { Start } = foo
-  const { End } = whatever
-  console.log({Start, End});
-  
-  createTheOppies(Start, End, ['005Ho0000090mJaIAI', '005Ho0000090m2MIAQ'])
+initialEnd.setFullYear(initialEnd.getFullYear() + 1);
+const amountOfOppies = await input({
+  message: "How many opportunities would you like to make?",
+});
+const { Start } = await inquirer.prompt({
+  type: 'date',
+  name: 'Start',
+  message: 'Start date',
+  prefix: '📆',
+  filter: (d) => Math.floor(d.getTime() / 1000),
+  locale: 'en-US',
+  format: { month: 'short', hour: undefined, minute: undefined },
+  clearable: true,
+  default: initialStart,
+});
+const { End } = await inquirer.prompt({
+  type: 'date',
+  name: 'End',
+  message: 'End date',
+  prefix: '📆',
+  filter: (d) => Math.floor(d.getTime() / 1000),
+  locale: 'en-US',
+  format: { month: 'short', hour: undefined, minute: undefined },
+  clearable: true,
+  default: initialEnd,
+});
+
+createTheOppies(Start, End, ['005Ho0000090mJaIAI', '005Ho0000090m2MIAQ']);
 if (email) {
   const Foo = new BulkStuff();
 
@@ -74,6 +83,7 @@ if (email) {
     if (result === 'purge') {
       // TO-DO: purge accounts then trigger the prompt again
       console.log('purging...');
+      await Foo.purgeAllOfTheThings()
       result = await buildChoices(true);
     }
     if (result === 'create_accounts') {

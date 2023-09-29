@@ -9,13 +9,24 @@ import {
 import fs from 'fs';
 import { createAccounts } from './create-accounts.js';
 import { createTheOppies } from './create-oppies.js';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { createTheContacts } from './create-contacts.js';
 import { createTheLeads } from './create-leads.js';
-import FormData from 'form-data'
+import cfonts from 'cfonts';
+
+const cfontSettings = {
+  align: 'center', // define text alignment
+  letterSpacing: 1, // define letter spacing
+  lineHeight: 2, // define the line height
+  space: true, // define if the output text should have empty lines on top and on the bottom
+  gradient: '#306674,#F23251', // define your two gradient colors
+  transitionGradient: true, // define if this is a transition between colors directly
+}
+
 function timeout(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
 export const queryAndFileLookup = {
   User: {
     query: `SELECT Id FROM User WHERE Email LIKE '%${EMAIL_DOMAIN}'`,
@@ -44,7 +55,7 @@ export const queryAndFileLookup = {
   },
 };
 
-export class BulkStuff {
+export class ShmemoDeams {
   constructor() {
     this.jobId = null;
     this.results = null;
@@ -85,6 +96,10 @@ export class BulkStuff {
     });
   }
 
+  async releaseTheParrot() {
+    spawn('terminal-parrot -delay 50', { shell: true, stdio: 'inherit' });
+  }
+
   async setupEnvironment(email) {
     return new Promise((resolve) => {
       const query = `sfdx org:display -o ${email} --json`;
@@ -97,11 +112,17 @@ export class BulkStuff {
           console.log(`stderr: ${stderr}`);
           return;
         }
-
-        const { accessToken, instanceUrl } = JSON.parse(stdout).result;
+        const { result } = JSON.parse(stdout);
+        
+        const { accessToken, instanceUrl, username } = result;
+        const name = username.split(/[\+@]/)?.at(0);
+        if (name.length) {
+          cfonts.say(`oh hi, ${name}!`, {
+            ...cfontSettings
+          });
+        }
 
         const authBearer = `Bearer ${accessToken}`;
-        console.log({ accessToken, instanceUrl });
         axios.defaults.baseURL = instanceUrl;
         axios.defaults.headers = {
           Authorization: authBearer,
@@ -356,6 +377,11 @@ export class BulkStuff {
       await this.createAndUploadOppiesAndAccounts();
       await this.createAndUploadContacts();
       await this.createAndUploadLeads();
+      cfonts.say(`LFG!!!!!`, {
+        ...cfontSettings
+      });
+      await timeout(3000)
+      this.releaseTheParrot()
     }
   }
 
@@ -376,6 +402,26 @@ export class BulkStuff {
       console.log('Finished processing opportunity ingest', foo);
     }
   }
+
+  async uploadOppies(start, end) {
+    // extract userids to map to accounts
+    await this.createQueryJob(queryAndFileLookup.User.query);
+    await this.checkJob('User');
+
+    await this.createQueryJob(queryAndFileLookup.Account.query);
+    await this.checkJob('Account');
+
+    // upload 'em
+    await this.createJob('Opportunity');
+    await this.uploadFile('./oppies.csv');
+    await this.completeInsertJob();
+
+    const foo = await this.checkJobProgress();
+    if (foo) {
+      console.log('Finished processing opportunity ingest', foo);
+    }
+  }
+
   async createAndUploadContacts() {
     // write the accounts to csv with mapped user ids
     createTheContacts(this.userIDs);
@@ -436,86 +482,11 @@ const failedResults = async (id) => {
   }
 };
 
-// const Foo = new BulkStuff();
-
-// await Foo.loginToSalesforce('aryeh+hans+invite@crossbeam.com');
-// await Foo.setupEnvironment('aryeh+hans+invite@crossbeam.com');
+const Foo = new ShmemoDeams();
+Foo.releaseTheParrot()
+// await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
+await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
 // await Foo.createAndUploadAccounts();
 // await Foo.purgeAllOfTheThings();
 // const failed = await Foo.getBatchResults('750Ho00000SU7CO');
 // console.log(failed);
-
-const importRequest = {
-  name: 'HS-Faker Imports',
-  files: [
-    {
-      fileName: 'hs-companies-one.csv',
-      fileFormat: 'CSV',
-      fileImportPage: {
-        hasHeader: 'true',
-        columnMappings: [
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'Name',
-            propertyName: 'name',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'Company Domain',
-            propertyName: 'domain',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'Company Owner',
-            propertyName: 'hubspot_owner_id',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'Type',
-            propertyName: 'type',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'Phone Number',
-            propertyName: 'phone',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'Number of Employees',
-            propertyName: 'numberofemployees',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'Street Address',
-            propertyName: 'address',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'City',
-            propertyName: 'city',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'State',
-            propertyName: 'state',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'ZipCode',
-            propertyName: 'zip',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'Country',
-            propertyName: 'country',
-          },
-          {
-            columnObjectTypeId: '0-2',
-            columnName: 'Annual Revenue',
-            propertyName: 'annualrevenue',
-          },
-        ],
-      },
-    },
-  ],
-};

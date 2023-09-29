@@ -2,12 +2,9 @@ import { faker } from '@faker-js/faker';
 import { format } from '@fast-csv/format';
 import { createWriteStream } from 'fs';
 import companies from './real-companies.js';
-import { convertToRoman } from './utils.js';
 import { UniqueEnforcer } from 'enforce-unique';
 
 let uniqueCompanyName = null;
-
-let companyNameLookup = {};
 
 const seedAccountsHelper = (amount, arr, seed, userIds) => {
   faker.seed(seed);
@@ -19,7 +16,7 @@ const seedAccountsHelper = (amount, arr, seed, userIds) => {
   uniqueCompanyName = null;
 };
 
-function createRandomAccount(userIds) {
+function createRandomAccount(userIds, seed) {
   const accountTypes = [
     'Prospect',
     'Customer - Channel',
@@ -41,13 +38,6 @@ function createRandomAccount(userIds) {
   const BillingState = faker.location.state();
   const BillingPostalCode = faker.location.zipCode();
   const BillingCountry = 'United States';
-  const companyName = faker.company.name();
-
-  const buildName = (name) => {
-    const numNames = companyNameLookup[name];
-    if (numNames === 0) return name;
-    return `${name}-${convertToRoman(companyNameLookup[name])}`;
-  };
 
   return {
     Name: company.name,

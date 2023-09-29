@@ -22,8 +22,9 @@ export const createTheOppies = (startDate, endDate, userIds) => {
       const numberOfOpps = faker.number.int({ min: 1, max: 2 });
       if (ID !== 'ID') {
         numberOfOppiesCreated += numberOfOpps;
+        const args = [numberOfOpps, NAME, ID, startDate, endDate, userIds]
         accountIdsAndNames.push(
-          buildOpps(numberOfOpps, NAME, ID, startDate, endDate, userIds)
+          args
         );
       }
     })
@@ -32,6 +33,9 @@ export const createTheOppies = (startDate, endDate, userIds) => {
         `finished creating opportunities: ${numberOfOppiesCreated} created`
       );
     });
+    accountIdsAndNames.forEach(oppyArgs => {
+      buildOpps(...oppyArgs)
+    })
 };
 
 const buildDumbName = (name) => {
@@ -88,4 +92,3 @@ function buildOpps(amount, accountName, AccountId, startDate, endDate, userIds) 
   }
 }
 
-// createTheOppies(['005Ho0000090mJaIAI', '005Ho0000090m2MIAQ']);

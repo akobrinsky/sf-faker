@@ -5,15 +5,7 @@ import inquirer from 'inquirer';
 import DatePrompt from 'inquirer-date-prompt';
 import cfonts from 'cfonts';
 
-// cfonts.say(`oh hi hans!!`, {
-//   align: 'center', // define text alignment
-//   letterSpacing: 1, // define letter spacing
-//   lineHeight: 2, // define the line height
-//   space: true, // define if the output text should have empty lines on top and on the bottom
-//   gradient: '#306674,#F23251', // define your two gradient colors
-//   transitionGradient: true, // define if this is a transition between colors directly
-// });
-import { ShmemoDeams, queryAndFileLookup } from './bulk_api.js';
+import { ShmemoDeams } from './bulk_api.js';
 inquirer.registerPrompt('date', DatePrompt);
 
 const Foo = new ShmemoDeams();
@@ -33,12 +25,10 @@ const startProcess = async (action) => {
 
   if (action === 'purge') {
     await Foo.purgeAllOfTheThings();
-    // bulkAction = await initialPrompt();
   }
 
   if (action == 'create_oppies') {
     await promptForOppyDateRange();
-    // bulkAction = await initialPrompt();
   }
 
   if (action === 'switch_instance') {

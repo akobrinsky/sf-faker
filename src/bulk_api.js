@@ -1,6 +1,5 @@
 import axios from 'axios';
 import {
-  EMAIL_DOMAIN,
   processAndWriteFile,
   getIDsFromCSV,
   errorWrapper,
@@ -26,38 +25,6 @@ function timeout(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export const queryAndFileLookup = {
-  User: {
-    query: `SELECT Id FROM User WHERE Email LIKE '%${EMAIL_DOMAIN}'`,
-    file: 'user-ids.csv',
-  },
-  Account: {
-    query: 'SELECT ID, Name, Website FROM Account',
-    idQuery: 'SELECT ID FROM Account',
-    file: 'extracted-accounts.csv',
-  },
-  Lead: {
-    idQuery: 'SELECT ID FROM Lead',
-    file: 'extracted-leads.csv',
-  },
-  Contact: {
-    query: 'SELECT ID FROM Contact',
-    file: 'extracted-contacts.csv',
-  },
-  Opportunity: {
-    idQuery: 'SELECT ID FROM Opportunity',
-    file: 'extracted-oppies.csv',
-  },
-  Case: {
-    idQuery: 'SELECT ID FROM Case',
-    file: 'extracted-cases.csv',
-  },
-  AllAccounts: {
-    query: 'SELECT Name, ID, Website, OwnerId, Type, Rating, Phone, SLA__c, UpsellOpportunity__c, CustomerPriority__c, NumberOfEmployees, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, AnnualRevenue FROM Account',
-    file: 'all_accounts.csv',
-  },
-};
-
 export class ShmemoDeams {
   constructor() {
     this.jobId = null;
@@ -69,13 +36,43 @@ export class ShmemoDeams {
     this.seedIndex = 100;
     this.email = null
   }
-
+  
+  queryAndFileLookup(table) {
+    const emailAddy = this.email.split('@')[1];
+    return {
+      User: {
+        query: `SELECT Id FROM User WHERE Email LIKE '%${emailAddy}'`,
+        file: 'user-ids.csv',
+      },
+      Account: {
+        query: 'SELECT ID, Name, Website FROM Account',
+        idQuery: 'SELECT ID FROM Account',
+        file: 'extracted-accounts.csv',
+      },
+      Lead: {
+        idQuery: 'SELECT ID FROM Lead',
+        file: 'extracted-leads.csv',
+      },
+      Contact: {
+        query: 'SELECT ID FROM Contact',
+        file: 'extracted-contacts.csv',
+      },
+      Opportunity: {
+        idQuery: 'SELECT ID FROM Opportunity',
+        file: 'extracted-oppies.csv',
+      },
+      Case: {
+        idQuery: 'SELECT ID FROM Case',
+        file: 'extracted-cases.csv',
+      },
+      AllAccounts: {
+        query: 'SELECT Name, ID, Website, OwnerId, Type, Rating, Phone, SLA__c, UpsellOpportunity__c, CustomerPriority__c, NumberOfEmployees, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, AnnualRevenue FROM Account',
+        file: 'all_accounts.csv',
+      },
+    }[table]
+  }
   setNumberAccounts(amount) {
     this.numAccounts = amount;
-  }
-
-  setNumberAccounts(val) {
-    this.seedIndex = val;
   }
 
   setEmailAddress(email) {
@@ -194,7 +191,7 @@ export class ShmemoDeams {
         `/services/data/v58.0/jobs/query/${this.jobId}/results`
       );
       // console.log(headers);
-      processAndWriteFile(data, queryAndFileLookup[table].file);
+      processAndWriteFile(data, this.queryAndFileLookup(table).file);
       const locator = headers['sforce-locator'];
       // TODO - append to same csv
       // if (locator !== null) {
@@ -203,7 +200,7 @@ export class ShmemoDeams {
       //   );
       //   processAndWriteFile(data, 'accounts-nextbatch.csv');
       // }
-      const ids = await getIDsFromCSV(queryAndFileLookup[table].file);
+      const ids = await getIDsFromCSV(this.queryAndFileLookup(table).file);
       if (table === 'Account') this.accountId = ids;
       if (table === 'User') this.userIDs = ids;
     } catch (err) {
@@ -341,49 +338,49 @@ export class ShmemoDeams {
 
   async purgeAllOfTheThings() {
     //  Lead
-    await this.createQueryJob(queryAndFileLookup.Lead.idQuery);
+    await this.createQueryJob(this.queryAndFileLookup('Lead').idQuery);
     await this.checkJob('Lead');
     await this.createDeleteJob('Lead');
-    await this.uploadFile(queryAndFileLookup.Lead.file);
+    await this.uploadFile(this.queryAndFileLookup('Lead').file);
     await this.completeInsertJob();
     console.log('All Leads have been deleted');
 
     //  Opportunity
-    await this.createQueryJob(queryAndFileLookup.Opportunity.idQuery);
+    await this.createQueryJob(this.queryAndFileLookup('Opportunity').idQuery);
     await this.checkJob('Opportunity');
     await this.createDeleteJob('Opportunity');
-    await this.uploadFile(queryAndFileLookup.Opportunity.file);
+    await this.uploadFile(this.queryAndFileLookup('Opportunity').file);
     await this.completeInsertJob();
     console.log('All Oppies have been deleted');
 
     //  Case
-    await this.createQueryJob(queryAndFileLookup.Case.idQuery);
+    await this.createQueryJob(this.queryAndFileLookup('Case').idQuery);
     await this.checkJob('Case');
     await this.createDeleteJob('Case');
-    await this.uploadFile(queryAndFileLookup.Case.file);
+    await this.uploadFile(this.queryAndFileLookup('Case').file);
     await this.completeInsertJob();
     console.log('All Cases have been deleted');
 
     //  Contact
-    await this.createQueryJob(queryAndFileLookup.Contact.query);
+    await this.createQueryJob(this.queryAndFileLookup('Contact').query);
     await this.checkJob('Contact');
     await this.createDeleteJob('Contact');
-    await this.uploadFile(queryAndFileLookup.Contact.file);
+    await this.uploadFile(this.queryAndFileLookup('Contact').file);
     await this.completeInsertJob();
     console.log('All Contacts have been deleted');
 
     //  Account
-    await this.createQueryJob(queryAndFileLookup.Account.idQuery);
+    await this.createQueryJob(this.queryAndFileLookup('Account').idQuery);
     await this.checkJob('Account');
     await this.createDeleteJob('Account');
-    await this.uploadFile(queryAndFileLookup.Account.file);
+    await this.uploadFile(this.queryAndFileLookup('Account').file);
     await this.completeInsertJob();
     console.log('All Accounts have been deleted');
   }
 
   async createAndUploadAccounts() {
     // extract userids to map to accounts
-    await this.createQueryJob(queryAndFileLookup.User.query);
+    await this.createQueryJob(this.queryAndFileLookup('User').query);
     await this.checkJob('User');
 
     // write the accounts to csv with mapped user ids
@@ -419,7 +416,7 @@ export class ShmemoDeams {
   }
 
   async createAndUploadOppiesAndAccounts() {
-    await this.createQueryJob(queryAndFileLookup.Account.query);
+    await this.createQueryJob(this.queryAndFileLookup('Account').query);
     await this.checkJob('Account');
 
     // write the accounts to csv with mapped user ids
@@ -441,7 +438,7 @@ export class ShmemoDeams {
     // await this.createQueryJob(queryAndFileLookup.User.query);
     // await this.checkJob('User');
 
-    await this.createQueryJob(queryAndFileLookup.Account.query);
+    await this.createQueryJob(this.queryAndFileLookup('Account').query);
     await this.checkJob('Account');
 
     // write the accounts to csv with mapped user ids

@@ -64,7 +64,7 @@ function createRandomAccount(userIds) {
 }
 // aryeh+sf+full+bob@crossbeam.com
 export const createAccounts = (
-  numAccounts = 500,
+  numAccounts,
   userIds,
   sfInstance,
   seed
@@ -121,8 +121,3 @@ export const createAccounts = (
 
   stream.end();
 };
-// createAccounts(
-//   500,
-//   ['005Ho00000AJeqgIAD', '005Ho00000AJeLgIAL', '005Ho00000AJeqqIAD'],
-//   'three'
-// );

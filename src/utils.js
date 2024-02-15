@@ -4,8 +4,6 @@ import { createWriteStream, readFileSync, writeFileSync } from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN;
-
 const USER_IDS = [
   '005Hp00000fiLgYIAU',
   '005Hp00000fiLl0IAE',
@@ -140,7 +138,6 @@ const errorWrapper = (error) => {
 export {
   USER_IDS,
   memoizeUnique,
-  EMAIL_DOMAIN,
   processAndWriteFile,
   getIDsFromCSV,
   convertToRoman,

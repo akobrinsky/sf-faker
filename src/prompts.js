@@ -101,7 +101,7 @@ const initialPrompt = async () => {
         name: 'I just need to create some oppies',
         value: 'create_oppies',
         description:
-          'Feed oppies into your sf instacne with a defined date range',
+          'Feed oppies into your sf instance with a defined date range',
       },
       {
         name: 'Purge All Of The Things 🔪🔪🔪🔪',

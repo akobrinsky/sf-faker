@@ -52,6 +52,10 @@ export const queryAndFileLookup = {
     idQuery: 'SELECT ID FROM Case',
     file: 'extracted-cases.csv',
   },
+  AllAccounts: {
+    query: 'SELECT Name, ID, Website, OwnerId, Type, Rating, Phone, SLA__c, UpsellOpportunity__c, CustomerPriority__c, NumberOfEmployees, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, AnnualRevenue FROM Account',
+    file: 'all_accounts.csv',
+  },
 };
 
 export class ShmemoDeams {
@@ -119,9 +123,9 @@ export class ShmemoDeams {
     spawn('terminal-parrot -delay 50', { shell: true, stdio: 'inherit' });
   }
 
-  async setupEnvironment() {
+  async setupEnvironment(email) {
     return new Promise((resolve) => {
-      const query = `sfdx org:display -o ${this.email} --json`;
+      const query = `sfdx org:display -o ${this.email || email} --json`;
       exec(query, (error, stdout, stderr) => {
         if (error) {
           console.error(error);
@@ -411,9 +415,6 @@ export class ShmemoDeams {
         ...cfontSettings,
       });
       await timeout(3000);
-      if (this.currentSfInstance === 'three') {
-        this.releaseTheParrot();
-      }
     }
   }
 

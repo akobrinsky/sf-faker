@@ -137,9 +137,7 @@ export class ShmemoDeams {
         const { accessToken, instanceUrl, username } = result;
         const name = username.split(/[\+@]/)?.at(0);
         if (name.length) {
-          cfonts.say(`oh hi, ${name}!`, {
-            ...cfontSettings,
-          });
+          cfonts.say(`oh hi, ${name}!`, cfontSettings);
         }
 
         const authBearer = `Bearer ${accessToken}`;
@@ -402,15 +400,7 @@ export class ShmemoDeams {
       await this.createAndUploadOppiesAndAccounts();
       await this.createAndUploadContacts();
       await this.createAndUploadLeads();
-      const delightLookup = {
-        one: "yaaaayyy!!!!",
-        two: `live! laugh! love!`,
-        three: `LFG!!!!!`,
-      };
-      const whatToPrint = delightLookup[this.currentSfInstance];
-      cfonts.say(whatToPrint, {
-        ...cfontSettings,
-      });
+
       await timeout(3000);
     }
   }
@@ -520,11 +510,11 @@ const failedResults = async (id) => {
   }
 };
 
-// const Foo = new ShmemoDeams();
 // Foo.releaseTheParrot();
+// const Foo = new ShmemoDeams();
 // await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
-// await Foo.setupEnvironment('aryeh+sf+full+bob@crossbeam.com');
+// await Foo.setupEnvironment('aryeh+mock1@crossbeam.com');
 // await Foo.createAndUploadAccounts();
 // await Foo.purgeAllOfTheThings();
-// const failed = await Foo.getBatchResults('750Ho00000SU7CO');
+// const failed = await Foo.getBatchResults('750aj000004QmY9');
 // console.log(failed);

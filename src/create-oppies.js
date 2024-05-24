@@ -110,6 +110,13 @@ function buildOpps(
             to: DateTime.local().minus({ days: 1 }),
           })
           .toISOString();
+if (isClosed) {
+
+  console.log({
+    CreatedDate,
+    CloseDate,
+  });
+}
 
     stream.write({
       AccountId,
@@ -124,11 +131,11 @@ function buildOpps(
   }
 }
 
-// createTheOppies({
-//   startDate: 1664376515,
-//   endDate: 1727534915,
-//   userIds: ["005Ho0000090mJaIAI", "005Ho0000090m2MIAQ"],
-// });
+createTheOppies({
+  startDate: 1664376515,
+  endDate: 1727534915,
+  userIds: ["005Ho0000090mJaIAI", "005Ho0000090m2MIAQ"],
+});
 
 
 const buildUnixTime = (date) => {

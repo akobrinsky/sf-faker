@@ -1,23 +1,19 @@
-import axios from 'axios';
-import {
-  processAndWriteFile,
-  getIDsFromCSV,
-  errorWrapper,
-} from './utils.js';
-import fs from 'fs';
-import { createAccounts } from './create-accounts.js';
-import { createTheOppies } from './create-oppies.js';
-import { exec, spawn } from 'child_process';
-import { createTheContacts } from './create-contacts.js';
-import { createTheLeads } from './create-leads.js';
-import cfonts from 'cfonts';
+import axios from "axios";
+import { processAndWriteFile, getIDsFromCSV, errorWrapper } from "./utils.js";
+import fs from "fs";
+import { createAccounts } from "./create-accounts.js";
+import { createTheOppies } from "./create-oppies.js";
+import { exec, spawn } from "child_process";
+import { createTheContacts } from "./create-contacts.js";
+import { createTheLeads } from "./create-leads.js";
+import cfonts from "cfonts";
 
 const cfontSettings = {
-  align: 'left', // define text alignment
+  align: "left", // define text alignment
   letterSpacing: 1, // define letter spacing
   lineHeight: 2, // define the line height
   space: true, // define if the output text should have empty lines on top and on the bottom
-  gradient: '#306674,#F23251', // define your two gradient colors
+  gradient: "#306674,#F23251", // define your two gradient colors
   transitionGradient: true, // define if this is a transition between colors directly
 };
 
@@ -31,62 +27,66 @@ export class ShmemoDeams {
     this.results = null;
     this.job = null;
     this.userIDs = null;
-    this.numAccounts = 500;
+    this.numAccounts = 200;
     this.currentSfInstance = null;
     this.seedIndex = 100;
-    this.email = null
+    this.email = null;
+    this.startDate = 1664376515;
+    this.endDate = 1727534915;
+    this.averageTimeToClose = 120
   }
-  
+
   queryAndFileLookup(table) {
-    const emailAddy = this.email.split('@')[1];
+    const emailAddy = this.email.split("@")[1];
     return {
       User: {
         query: `SELECT Id FROM User WHERE Email LIKE '%${emailAddy}'`,
-        file: 'user-ids.csv',
+        file: "user-ids.csv",
       },
       Account: {
-        query: 'SELECT ID, Name, Website FROM Account',
-        idQuery: 'SELECT ID FROM Account',
-        file: 'extracted-accounts.csv',
+        query: "SELECT ID, Name, Website FROM Account",
+        idQuery: "SELECT ID FROM Account",
+        file: "extracted-accounts.csv",
       },
       Lead: {
-        idQuery: 'SELECT ID FROM Lead',
-        file: 'extracted-leads.csv',
+        idQuery: "SELECT ID FROM Lead",
+        file: "extracted-leads.csv",
       },
       Contact: {
-        query: 'SELECT ID FROM Contact',
-        file: 'extracted-contacts.csv',
+        query: "SELECT ID FROM Contact",
+        file: "extracted-contacts.csv",
       },
       Opportunity: {
-        idQuery: 'SELECT ID FROM Opportunity',
-        file: 'extracted-oppies.csv',
+        idQuery: "SELECT ID FROM Opportunity",
+        file: "extracted-oppies.csv",
       },
       Case: {
-        idQuery: 'SELECT ID FROM Case',
-        file: 'extracted-cases.csv',
+        idQuery: "SELECT ID FROM Case",
+        file: "extracted-cases.csv",
       },
       AllAccounts: {
-        query: 'SELECT Name, ID, Website, OwnerId, Type, Rating, Phone, SLA__c, UpsellOpportunity__c, CustomerPriority__c, NumberOfEmployees, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, AnnualRevenue FROM Account',
-        file: 'all_accounts.csv',
+        query:
+          "SELECT Name, ID, Website, OwnerId, Type, Rating, Phone, SLA__c, UpsellOpportunity__c, CustomerPriority__c, NumberOfEmployees, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry, AnnualRevenue FROM Account",
+        file: "all_accounts.csv",
       },
-    }[table]
+    }[table];
   }
   setNumberAccounts(amount) {
     this.numAccounts = amount;
   }
 
   setEmailAddress(email) {
-    this.email = email
+    this.email = email;
   }
 
   setSfInstance(val) {
-    this.currentSfInstance = val
+    this.currentSfInstance = val;
   }
 
   async createQueryJob(query) {
     try {
       const { data } = await axios.post(`/services/data/v58.0/jobs/query`, {
-        operation: 'query',
+        operation: "query",
         query,
       });
       this.jobId = data.id;
@@ -117,7 +117,7 @@ export class ShmemoDeams {
   }
 
   async releaseTheParrot() {
-    spawn('terminal-parrot -delay 50', { shell: true, stdio: 'inherit' });
+    spawn("terminal-parrot -delay 50", { shell: true, stdio: "inherit" });
   }
 
   async setupEnvironment(email) {
@@ -158,7 +158,7 @@ export class ShmemoDeams {
         `/services/data/v58.0/jobs/query/${this.jobId}`
       );
       console.log(`Checking ${table} job progress: ${this.jobId}`);
-      if (data.state !== 'JobComplete') {
+      if (data.state !== "JobComplete") {
         await timeout(500);
         await this.checkJob(table);
       } else {
@@ -175,7 +175,7 @@ export class ShmemoDeams {
         `/services/data/v58.0/jobs/ingest/${this.job.id}`
       );
       console.log(`checking ingest job progress: ${this.job.id}`);
-      if (data.state !== 'JobComplete') {
+      if (data.state !== "JobComplete") {
         await timeout(500);
         return this.checkJobProgress();
       }
@@ -192,7 +192,7 @@ export class ShmemoDeams {
       );
       // console.log(headers);
       processAndWriteFile(data, this.queryAndFileLookup(table).file);
-      const locator = headers['sforce-locator'];
+      const locator = headers["sforce-locator"];
       // TODO - append to same csv
       // if (locator !== null) {
       //   const { data, headers } = await axios.get(
@@ -201,8 +201,8 @@ export class ShmemoDeams {
       //   processAndWriteFile(data, 'accounts-nextbatch.csv');
       // }
       const ids = await getIDsFromCSV(this.queryAndFileLookup(table).file);
-      if (table === 'Account') this.accountId = ids;
-      if (table === 'User') this.userIDs = ids;
+      if (table === "Account") this.accountId = ids;
+      if (table === "User") this.userIDs = ids;
     } catch (err) {
       errorWrapper(err);
     }
@@ -212,18 +212,18 @@ export class ShmemoDeams {
     try {
       const body = JSON.stringify({
         object: table,
-        contentType: 'CSV',
-        operation: 'insert',
-        lineEnding: 'LF',
+        contentType: "CSV",
+        operation: "insert",
+        lineEnding: "LF",
       });
       const { data } = await axios.post(
-        '/services/data/v58.0/jobs/ingest/',
+        "/services/data/v58.0/jobs/ingest/",
         body,
         {
           headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-PrettyPrint': '1',
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-PrettyPrint": "1",
           },
         }
       );
@@ -238,18 +238,18 @@ export class ShmemoDeams {
     try {
       const body = JSON.stringify({
         object: table,
-        contentType: 'CSV',
-        operation: 'hardDelete',
-        lineEnding: 'LF',
+        contentType: "CSV",
+        operation: "hardDelete",
+        lineEnding: "LF",
       });
       const { data } = await axios.post(
-        '/services/data/v58.0/jobs/ingest/',
+        "/services/data/v58.0/jobs/ingest/",
         body,
         {
           headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-PrettyPrint': '1',
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-PrettyPrint": "1",
           },
         }
       );
@@ -261,14 +261,14 @@ export class ShmemoDeams {
   }
 
   async closeJob(id) {
-    const body = JSON.stringify({ state: 'UploadComplete' });
+    const body = JSON.stringify({ state: "UploadComplete" });
     try {
       const url = `/services/data/v58.0/jobs/ingest/${id}/`;
       const { data } = await axios.patch(url, body, {
         headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-          Accept: 'application/json',
-          'X-PrettyPrint': '1',
+          "Content-Type": "application/json; charset=UTF-8",
+          Accept: "application/json",
+          "X-PrettyPrint": "1",
         },
       });
       return data;
@@ -282,8 +282,8 @@ export class ShmemoDeams {
       const url = this.job.contentUrl;
       await axios.put(url, fs.createReadStream(file), {
         headers: {
-          'Content-Type': 'text/csv',
-          Accept: 'application/json',
+          "Content-Type": "text/csv",
+          Accept: "application/json",
         },
       });
     } catch (err) {
@@ -292,14 +292,14 @@ export class ShmemoDeams {
   }
 
   async completeInsertJob() {
-    const body = JSON.stringify({ state: 'UploadComplete' });
+    const body = JSON.stringify({ state: "UploadComplete" });
 
     try {
       const url = `/services/data/v58.0/jobs/ingest/${this.job.id}/`;
       const foo = await axios.patch(url, body, {
         headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-          Accept: 'application/json',
+          "Content-Type": "application/json; charset=UTF-8",
+          Accept: "application/json",
         },
       });
       return foo;
@@ -313,7 +313,7 @@ export class ShmemoDeams {
     try {
       const foo = await axios.get(url, {
         headers: {
-          'Content-Type': 'text/csv',
+          "Content-Type": "text/csv",
         },
       });
       return foo;
@@ -327,7 +327,7 @@ export class ShmemoDeams {
     try {
       const foo = await axios.get(url, {
         headers: {
-          'Content-Type': 'text/csv',
+          "Content-Type": "text/csv",
         },
       });
       return foo;
@@ -338,50 +338,50 @@ export class ShmemoDeams {
 
   async purgeAllOfTheThings() {
     //  Lead
-    await this.createQueryJob(this.queryAndFileLookup('Lead').idQuery);
-    await this.checkJob('Lead');
-    await this.createDeleteJob('Lead');
-    await this.uploadFile(this.queryAndFileLookup('Lead').file);
+    await this.createQueryJob(this.queryAndFileLookup("Lead").idQuery);
+    await this.checkJob("Lead");
+    await this.createDeleteJob("Lead");
+    await this.uploadFile(this.queryAndFileLookup("Lead").file);
     await this.completeInsertJob();
-    console.log('All Leads have been deleted');
+    console.log("All Leads have been deleted");
 
     //  Opportunity
-    await this.createQueryJob(this.queryAndFileLookup('Opportunity').idQuery);
-    await this.checkJob('Opportunity');
-    await this.createDeleteJob('Opportunity');
-    await this.uploadFile(this.queryAndFileLookup('Opportunity').file);
+    await this.createQueryJob(this.queryAndFileLookup("Opportunity").idQuery);
+    await this.checkJob("Opportunity");
+    await this.createDeleteJob("Opportunity");
+    await this.uploadFile(this.queryAndFileLookup("Opportunity").file);
     await this.completeInsertJob();
-    console.log('All Oppies have been deleted');
+    console.log("All Oppies have been deleted");
 
     //  Case
-    await this.createQueryJob(this.queryAndFileLookup('Case').idQuery);
-    await this.checkJob('Case');
-    await this.createDeleteJob('Case');
-    await this.uploadFile(this.queryAndFileLookup('Case').file);
+    await this.createQueryJob(this.queryAndFileLookup("Case").idQuery);
+    await this.checkJob("Case");
+    await this.createDeleteJob("Case");
+    await this.uploadFile(this.queryAndFileLookup("Case").file);
     await this.completeInsertJob();
-    console.log('All Cases have been deleted');
+    console.log("All Cases have been deleted");
 
     //  Contact
-    await this.createQueryJob(this.queryAndFileLookup('Contact').query);
-    await this.checkJob('Contact');
-    await this.createDeleteJob('Contact');
-    await this.uploadFile(this.queryAndFileLookup('Contact').file);
+    await this.createQueryJob(this.queryAndFileLookup("Contact").query);
+    await this.checkJob("Contact");
+    await this.createDeleteJob("Contact");
+    await this.uploadFile(this.queryAndFileLookup("Contact").file);
     await this.completeInsertJob();
-    console.log('All Contacts have been deleted');
+    console.log("All Contacts have been deleted");
 
     //  Account
-    await this.createQueryJob(this.queryAndFileLookup('Account').idQuery);
-    await this.checkJob('Account');
-    await this.createDeleteJob('Account');
-    await this.uploadFile(this.queryAndFileLookup('Account').file);
+    await this.createQueryJob(this.queryAndFileLookup("Account").idQuery);
+    await this.checkJob("Account");
+    await this.createDeleteJob("Account");
+    await this.uploadFile(this.queryAndFileLookup("Account").file);
     await this.completeInsertJob();
-    console.log('All Accounts have been deleted');
+    console.log("All Accounts have been deleted");
   }
 
   async createAndUploadAccounts() {
     // extract userids to map to accounts
-    await this.createQueryJob(this.queryAndFileLookup('User').query);
-    await this.checkJob('User');
+    await this.createQueryJob(this.queryAndFileLookup("User").query);
+    await this.checkJob("User");
 
     // write the accounts to csv with mapped user ids
     createAccounts(
@@ -392,8 +392,8 @@ export class ShmemoDeams {
     );
 
     // upload 'em
-    await this.createJob('Account');
-    await this.uploadFile('./accounts.csv');
+    await this.createJob("Account");
+    await this.uploadFile("./accounts.csv");
     await this.completeInsertJob();
 
     const foo = await this.checkJobProgress();
@@ -403,11 +403,11 @@ export class ShmemoDeams {
       await this.createAndUploadContacts();
       await this.createAndUploadLeads();
       const delightLookup = {
-        one: 'yaaaayyy!!!!',
+        one: "yaaaayyy!!!!",
         two: `live! laugh! love!`,
-        three: `LFG!!!!!`
-      }
-      const whatToPrint = delightLookup[this.currentSfInstance]
+        three: `LFG!!!!!`,
+      };
+      const whatToPrint = delightLookup[this.currentSfInstance];
       cfonts.say(whatToPrint, {
         ...cfontSettings,
       });
@@ -416,20 +416,25 @@ export class ShmemoDeams {
   }
 
   async createAndUploadOppiesAndAccounts() {
-    await this.createQueryJob(this.queryAndFileLookup('Account').query);
-    await this.checkJob('Account');
+    await this.createQueryJob(this.queryAndFileLookup("Account").query);
+    await this.checkJob("Account");
 
     // write the accounts to csv with mapped user ids
-    createTheOppies(1664376515, 1727534915, this.userIDs);
+    console.log(this.startDate, this.endDate, this.userIDs);
+    createTheOppies({
+      startDate: this.startDate,
+      endDate: this.endDate,
+      userIds: this.userIDs,
+    });
 
     // upload 'em
-    await this.createJob('Opportunity');
-    await this.uploadFile('./oppies.csv');
+    await this.createJob("Opportunity");
+    await this.uploadFile("./oppies.csv");
     await this.completeInsertJob();
 
     const foo = await this.checkJobProgress();
     if (foo) {
-      console.log('Finished processing opportunity ingest', foo);
+      console.log("Finished processing opportunity ingest", foo);
     }
   }
 
@@ -438,20 +443,20 @@ export class ShmemoDeams {
     // await this.createQueryJob(queryAndFileLookup.User.query);
     // await this.checkJob('User');
 
-    await this.createQueryJob(this.queryAndFileLookup('Account').query);
-    await this.checkJob('Account');
+    await this.createQueryJob(this.queryAndFileLookup("Account").query);
+    await this.checkJob("Account");
 
     // write the accounts to csv with mapped user ids
     createTheOppies(start, end, this.userIDs, amount);
 
     // upload 'em
-    await this.createJob('Opportunity');
-    await this.uploadFile('./oppies.csv');
+    await this.createJob("Opportunity");
+    await this.uploadFile("./oppies.csv");
     await this.completeInsertJob();
 
     const foo = await this.checkJobProgress();
     if (foo) {
-      console.log('Finished processing opportunity ingest', foo);
+      console.log("Finished processing opportunity ingest", foo);
     }
   }
 
@@ -460,13 +465,13 @@ export class ShmemoDeams {
     createTheContacts(this.userIDs);
 
     // upload 'em
-    await this.createJob('Contact');
-    await this.uploadFile('./contacts.csv');
+    await this.createJob("Contact");
+    await this.uploadFile("./contacts.csv");
     await this.completeInsertJob();
 
     const foo = await this.checkJobProgress();
     if (foo) {
-      console.log('Finished processing contact ingest');
+      console.log("Finished processing contact ingest");
     }
   }
   async createAndUploadLeads() {
@@ -474,13 +479,13 @@ export class ShmemoDeams {
     createTheLeads(this.userIDs);
 
     // upload 'em
-    await this.createJob('Lead');
-    await this.uploadFile('./leads.csv');
+    await this.createJob("Lead");
+    await this.uploadFile("./leads.csv");
     await this.completeInsertJob();
 
     const foo = await this.checkJobProgress();
     if (foo) {
-      console.log('Finished processing lead ingest');
+      console.log("Finished processing lead ingest");
     }
   }
 }
@@ -490,11 +495,11 @@ const listObjectInfo = async (object, query) => {
     const url = `/services/data/v58.0/sobjects/${object}/describe`;
     return axios.get(url, {
       headers: {
-        'Content-Type': 'text/csv',
+        "Content-Type": "text/csv",
       },
       body: {
         query,
-        operation: 'query',
+        operation: "query",
       },
     });
   } catch (err) {
@@ -506,7 +511,7 @@ const failedResults = async (id) => {
   try {
     const foo = await axios.get(url, {
       headers: {
-        'Content-Type': 'text/csv',
+        "Content-Type": "text/csv",
       },
     });
     return foo;

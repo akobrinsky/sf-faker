@@ -1,6 +1,4 @@
 import { input, confirm, select } from '@inquirer/prompts';
-import { createAccounts } from './create-accounts.js';
-import { createTheOppies } from './create-oppies.js';
 import inquirer from 'inquirer';
 import DatePrompt from 'inquirer-date-prompt';
 import cfonts from 'cfonts';
@@ -141,9 +139,14 @@ const promptForOppyDateRange = async () => {
     default: initialEnd,
   });
   console.log(`\nuploaded ${amountOfOppies} oppies!\n`);
+  console.log(Start, End);
 };
+await promptForOppyDateRange()
+const promptForSetupOptions  = async () => {
 
-await setupInstance();
+}
+// await startProcess()
+// await setupInstance();
 // if (action === 'create_all') {
 //   await Foo.createAndUploadAccounts();
 //   await initialPrompt();

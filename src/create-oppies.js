@@ -4,17 +4,17 @@ import { parseFile } from "@fast-csv/parse";
 import { createWriteStream } from "fs";
 import { DateTime } from "luxon";
 
+
+function getMinMaxForAverage(average, range = 15) {
+  const min = average - range;
+  const max = average + range;
+  return { min, max };
+}
 const ingestFileName = "extracted-accounts.csv";
 const oppyCSV = createWriteStream("oppies.csv");
 
 const stream = format({ headers: true });
 stream.pipe(oppyCSV);
-
-function getMinMaxForAverage(average, range = 20) {
-  const min = average - range;
-  const max = average + range;
-  return { min, max };
-}
 
 export const createTheOppies = ({ startDate, endDate, userIds }) => {
   // Build up account id and names from SF account export
@@ -91,7 +91,7 @@ function buildOpps(
 
     const Name = buildDumbName(accountName);
 
-    const { min, max } = getMinMaxForAverage(150)
+    const { min, max } = getMinMaxForAverage(120)
 
     const CloseDate = faker.date.between(closeDateOptions).toISOString();
     const earliestCreateDate = DateTime.fromISO(CloseDate).minus({ days: max }); 
@@ -110,13 +110,6 @@ function buildOpps(
             to: DateTime.local().minus({ days: 1 }),
           })
           .toISOString();
-if (isClosed) {
-
-  console.log({
-    CreatedDate,
-    CloseDate,
-  });
-}
 
     stream.write({
       AccountId,
@@ -131,11 +124,11 @@ if (isClosed) {
   }
 }
 
-createTheOppies({
-  startDate: 1664376515,
-  endDate: 1727534915,
-  userIds: ["005Ho0000090mJaIAI", "005Ho0000090m2MIAQ"],
-});
+// createTheOppies({
+//   startDate: 1664376515,
+//   endDate: 1727534915,
+//   userIds: ["005Ho0000090mJaIAI", "005Ho0000090m2MIAQ"],
+// });
 
 
 const buildUnixTime = (date) => {

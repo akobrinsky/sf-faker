@@ -21,19 +21,34 @@ function timeout(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function buildStartAndEndDates() {
+  const initialStart = new Date();
+  initialStart.setFullYear(initialStart.getFullYear() - 1);
+
+  const initialEnd = new Date();
+  initialEnd.setFullYear(initialEnd.getFullYear() + 1);
+
+  const start = Math.floor(initialStart.getTime() / 1000);
+  const end = Math.floor(initialEnd.getTime() / 1000);
+
+  return { start, end };
+}
+
 export class ShmemoDeams {
   constructor() {
     this.jobId = null;
     this.results = null;
     this.job = null;
     this.userIDs = null;
-    this.numAccounts = 200;
+    this.numAccounts = 300;
     this.currentSfInstance = null;
     this.seedIndex = 100;
     this.email = null;
-    this.startDate = 1664376515;
-    this.endDate = 1727534915;
-    this.averageTimeToClose = 120
+    this.startDate = null;
+    this.endDate = null;
+    this.averageTimeToClose = 120;
+
+    this.setDateRange(null, null);
   }
 
   queryAndFileLookup(table) {
@@ -70,6 +85,12 @@ export class ShmemoDeams {
         file: "all_accounts.csv",
       },
     }[table];
+  }
+  setDateRange(start, end) {
+    console.log({start, end});
+    if (!start || !end) ({ start, end } = buildStartAndEndDates());
+    this.startDate = start;
+    this.endDate = end;
   }
   setNumberAccounts(amount) {
     this.numAccounts = amount;
@@ -513,8 +534,8 @@ const failedResults = async (id) => {
 // Foo.releaseTheParrot();
 // const Foo = new ShmemoDeams();
 // await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
-// await Foo.setupEnvironment('aryeh+mock1@crossbeam.com');
+// await Foo.setupEnvironment('aryeh+sf+fifty@crossbeam.com');
 // await Foo.createAndUploadAccounts();
 // await Foo.purgeAllOfTheThings();
-// const failed = await Foo.getBatchResults('750aj000004QmY9');
-// console.log(failed);
+// const failed = await Foo.getBatchResults('751Dn00000KLTbc');
+// console.log(Foo.startDate, Foo.endDate);

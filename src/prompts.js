@@ -1,12 +1,11 @@
 import { input, confirm, select } from '@inquirer/prompts';
 import inquirer from 'inquirer';
 import DatePrompt from 'inquirer-date-prompt';
-import cfonts from 'cfonts';
 
-import { ShmemoDeams } from './bulk_api.js';
+import { DemoBeams } from './bulk_api.js';
 inquirer.registerPrompt('date', DatePrompt);
 
-const Foo = new ShmemoDeams();
+const BeamInstance = new DemoBeams();
 // const createOppies = await confirm({
 //   message: 'Hey there friend, would you like to make some oppiez???? 🤑🤑🤑🤑🤑',
 // });
@@ -17,12 +16,12 @@ const startProcess = async (action) => {
   }
   // let bulkAction
   if (action === 'create_all') {
-    await Foo.createAndUploadAccounts();
+    await BeamInstance.createAndUploadAccounts();
     // bulkAction = await initialPrompt();
   }
 
   if (action === 'purge') {
-    await Foo.purgeAllOfTheThings();
+    await BeamInstance.purgeAllOfTheThings();
   }
 
   if (action == 'create_oppies') {
@@ -61,18 +60,18 @@ const setupInstance = async () => {
       },
     ],
   });
-  //
-  Foo.setSfInstance(sfInstance);
-  console.log(sfInstance);
+  
+  BeamInstance.setSfInstance(sfInstance);
+  
   // prompt for email address for current instance
   const email = await input({
-    message: 'Please enter the email assoicated with account',
+    message: 'Please enter the email associated with account',
   });
-  Foo.setEmailAddress(email);
+  BeamInstance.setEmailAddress(email);
 
   // go through auth and setup bearer token... etc
-  await Foo.loginToSalesforce()
-  await Foo.setupEnvironment();
+  await BeamInstance.loginToSalesforce();
+  await BeamInstance.setupEnvironment();
   // bulkAction = await initialPrompt();
   return await startProcess();
 };
@@ -141,7 +140,7 @@ const promptForOppyDateRange = async () => {
   });
   console.log(`\nuploaded ${amountOfOppies} oppies!\n`);
   console.log(`\date range change was successful\n`);
-  Foo.setDateRange(Start, End);
+  BeamInstance.setDateRange(Start, End);
 };
 // await promptForOppyDateRange()
 
@@ -167,8 +166,8 @@ await setupInstance();
 
 // createTheOppies(Start, End, ['005Ho0000090mJaIAI', '005Ho0000090m2MIAQ']);
 if (false) {
-  await Foo.loginToSalesforce();
-  await Foo.setupEnvironment(email);
+  await BeamInstance.loginToSalesforce();
+  await BeamInstance.setupEnvironment(email);
 
   const buildChoices = async (disablePurge = false) => {
     let result = await select({
@@ -192,7 +191,7 @@ if (false) {
     if (result === 'purge') {
       // TO-DO: purge accounts then trigger the prompt again
       console.log('purging...');
-      await Foo.purgeAllOfTheThings();
+      await BeamInstance.purgeAllOfTheThings();
       result = await buildChoices(true);
     }
     if (result === 'create_accounts') {
@@ -209,8 +208,8 @@ if (false) {
 
     if (extractUserIds) {
       // get and set user ids
-      await Foo.createQueryJob(queryAndFileLookup.user.query);
-      await Foo.checkJob('user');
+      await BeamInstance.createQueryJob(queryAndFileLookup.user.query);
+      await BeamInstance.checkJob('user');
     }
 
     // const numAccounts = await input({ message: "How many accounts would you like to create?" });

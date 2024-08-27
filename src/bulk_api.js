@@ -34,7 +34,7 @@ function buildStartAndEndDates() {
   return { start, end };
 }
 
-export class ShmemoDeams {
+export class DemoBeams {
   constructor() {
     this.jobId = null;
     this.results = null;
@@ -87,7 +87,6 @@ export class ShmemoDeams {
     }[table];
   }
   setDateRange(start, end) {
-    console.log({start, end});
     if (!start || !end) ({ start, end } = buildStartAndEndDates());
     this.startDate = start;
     this.endDate = end;
@@ -532,7 +531,7 @@ const failedResults = async (id) => {
 };
 
 // Foo.releaseTheParrot();
-// const Foo = new ShmemoDeams();
+// const Foo = new DemoBeams();
 // await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
 // await Foo.setupEnvironment('aryeh+sf+fifty@crossbeam.com');
 // await Foo.createAndUploadAccounts();

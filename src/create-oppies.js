@@ -10,6 +10,14 @@ function getMinMaxForAverage(average, range = 15) {
   const max = average + range;
   return { min, max };
 }
+
+const buildDumbName = (name) => {
+  const extraOppyTitle = `${faker.company.catchPhraseAdjective()} ${faker.word.noun()}`;
+  return `${name} - ${extraOppyTitle}`.replace(/(^|[\s-])\S/g, (match) =>
+    match.toUpperCase()
+  );
+};
+
 const ingestFileName = "extracted-accounts.csv";
 const oppyCSV = createWriteStream("oppies.csv");
 
@@ -40,12 +48,7 @@ export const createTheOppies = ({ startDate, endDate, userIds }) => {
     });
 };
 
-const buildDumbName = (name) => {
-  const extraOppyTitle = `${faker.company.catchPhraseAdjective()} ${faker.word.noun()}`;
-  return `${name} - ${extraOppyTitle}`.replace(/(^|[\s-])\S/g, (match) =>
-    match.toUpperCase()
-  );
-};
+
 
 function buildOpps(
   amount,
@@ -75,19 +78,14 @@ function buildOpps(
     const from = DateTime.fromSeconds(startDate);
     const end = DateTime.fromSeconds(endDate);
 
-    const isClosed = StageName === "Closed Won" || StageName === "Closed Lost";
+    const isClosed = ["Closed Won", "Closed Lost"].includes(StageName);
 
     // if deal is closed, we need to put the close date in the past
     // generally deal close dates are set to the future though
     const closeDateOptions = isClosed
-      ? {
-          from,
-          to: DateTime.local().minus({ days: 1 }),
-        }
-      : {
-          from: DateTime.local().plus({ days: 2 }),
-          to: end,
-        };
+      ? { from, to: DateTime.local().minus({ days: 1 }) }
+      : { from: DateTime.local().plus({ days: 2 }), to: end };
+
 
     const Name = buildDumbName(accountName);
 
@@ -123,17 +121,3 @@ function buildOpps(
     });
   }
 }
-
-// createTheOppies({
-//   startDate: 1664376515,
-//   endDate: 1727534915,
-//   userIds: ["005Ho0000090mJaIAI", "005Ho0000090m2MIAQ"],
-// });
-
-
-const buildUnixTime = (date) => {
-  const foo = new Date(date);
-  return Math.round(foo.getTime() / 1000);
-};
-
-const { min, max } = getMinMaxForAverage(150)  

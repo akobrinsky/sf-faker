@@ -17,7 +17,6 @@ const startProcess = async (action) => {
   // let bulkAction
   if (action === 'create_all') {
     await BeamInstance.createAndUploadAccounts();
-    // bulkAction = await initialPrompt();
   }
 
   if (action === 'purge') {
@@ -70,7 +69,7 @@ const setupInstance = async () => {
   BeamInstance.setEmailAddress(email);
 
   // go through auth and setup bearer token... etc
-  await BeamInstance.loginToSalesforce();
+  // await BeamInstance.loginToSalesforce();
   await BeamInstance.setupEnvironment();
   // bulkAction = await initialPrompt();
   return await startProcess();
@@ -138,94 +137,10 @@ const promptForOppyDateRange = async () => {
     clearable: true,
     default: initialEnd,
   });
-  console.log(`\nuploaded ${amountOfOppies} oppies!\n`);
-  console.log(`\date range change was successful\n`);
+  
   BeamInstance.setDateRange(Start, End);
+  await BeamInstance.createAndUploadOppies(+amountOfOppies)
+  BeamInstance.setDateRange(null, null);
 };
-// await promptForOppyDateRange()
 
-// await startProcess()
 await setupInstance();
-// if (action === 'create_all') {
-//   await Foo.createAndUploadAccounts();
-//   await initialPrompt();
-// }
-
-// if (bulkAction === 'purge') {
-//   await Foo.purgeAllOfTheThings();
-//   await initialPrompt();
-// }
-
-// if (bulkAction == 'create_oppies') {
-//   console.log('weierd');
-//   console.log('lfg');
-//   await initialPrompt();
-// }
-
-// prompt for date for oppies
-
-// createTheOppies(Start, End, ['005Ho0000090mJaIAI', '005Ho0000090m2MIAQ']);
-if (false) {
-  await BeamInstance.loginToSalesforce();
-  await BeamInstance.setupEnvironment(email);
-
-  const buildChoices = async (disablePurge = false) => {
-    let result = await select({
-      message: 'What would you like to do today?',
-      choices: [
-        {
-          name: 'Purge accounts',
-          value: 'purge',
-          description:
-            'Purge all accounts for this SF dev instance... note that this wipes out contacts and opportunities as well!',
-          disabled: disablePurge,
-        },
-        {
-          name: 'Create accounts',
-          value: 'create_accounts',
-          description: 'Create accounts with predictable overlaps',
-        },
-      ],
-    });
-
-    if (result === 'purge') {
-      // TO-DO: purge accounts then trigger the prompt again
-      console.log('purging...');
-      await BeamInstance.purgeAllOfTheThings();
-      result = await buildChoices(true);
-    }
-    if (result === 'create_accounts') {
-      return result;
-    }
-  };
-
-  let answer = await buildChoices();
-
-  if (answer === 'create_accounts') {
-    const extractUserIds = await confirm({
-      message: 'Extract User Ids to map to accounts and oppies',
-    });
-
-    if (extractUserIds) {
-      // get and set user ids
-      await BeamInstance.createQueryJob(queryAndFileLookup.user.query);
-      await BeamInstance.checkJob('user');
-    }
-
-    // const numAccounts = await input({ message: "How many accounts would you like to create?" });
-
-    // const foo = await input({ message: "How many SF Instances would you like to feed 🥑🥕🥩🍍" });
-    // const foo1 = await input({ message: "How many leads would you like to create?" });
-    // const foo2 = await confirm({ message: "Do you want to create some fresh oppies?" });
-
-    // if (numAccounts > 0) {
-    //   // Write new Accounts to csv
-    //   createAccounts(numAccounts);
-
-    //   // Upload new accounts
-    //   // await Foo.createQueryJob(queryAndFileLookup.account.query);
-    //   // await Foo.checkJob('account');
-    //   console.log('etc');
-    // }
-  }
-} 

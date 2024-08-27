@@ -136,10 +136,6 @@ export class DemoBeams {
     });
   }
 
-  async releaseTheParrot() {
-    spawn("terminal-parrot -delay 50", { shell: true, stdio: "inherit" });
-  }
-
   async setupEnvironment(email) {
     return new Promise((resolve) => {
       const query = `sfdx org:display -o ${this.email || email} --json`;
@@ -414,27 +410,30 @@ export class DemoBeams {
     await this.uploadFile("./accounts.csv");
     await this.completeInsertJob();
 
-    const foo = await this.checkJobProgress();
+    const isJobFinished = await this.checkJobProgress();
 
-    if (foo) {
-      await this.createAndUploadOppiesAndAccounts();
+    if (isJobFinished) {
+      await this.createAndUploadOppies();
       await this.createAndUploadContacts();
-      await this.createAndUploadLeads();
+      // await this.createAndUploadLeads();
 
       await timeout(3000);
     }
   }
 
-  async createAndUploadOppiesAndAccounts() {
+  async createAndUploadOppies(numOppies) {
+    await this.createQueryJob(this.queryAndFileLookup("User").query);
+    await this.checkJob("User");
+
     await this.createQueryJob(this.queryAndFileLookup("Account").query);
     await this.checkJob("Account");
 
     // write the accounts to csv with mapped user ids
-    console.log(this.startDate, this.endDate, this.userIDs);
     createTheOppies({
       startDate: this.startDate,
       endDate: this.endDate,
       userIds: this.userIDs,
+      numOppies
     });
 
     // upload 'em
@@ -442,9 +441,9 @@ export class DemoBeams {
     await this.uploadFile("./oppies.csv");
     await this.completeInsertJob();
 
-    const foo = await this.checkJobProgress();
-    if (foo) {
-      console.log("Finished processing opportunity ingest", foo);
+    const isJobFinished = await this.checkJobProgress();
+    if (isJobFinished) {
+      console.log("Finished processing opportunity ingest", isJobFinished);
     }
   }
 
@@ -464,9 +463,9 @@ export class DemoBeams {
     await this.uploadFile("./oppies.csv");
     await this.completeInsertJob();
 
-    const foo = await this.checkJobProgress();
-    if (foo) {
-      console.log("Finished processing opportunity ingest", foo);
+    const isJobFinished = await this.checkJobProgress();
+    if (isJobFinished) {
+      console.log("Finished processing opportunity ingest", isJobFinished);
     }
   }
 
@@ -479,8 +478,8 @@ export class DemoBeams {
     await this.uploadFile("./contacts.csv");
     await this.completeInsertJob();
 
-    const foo = await this.checkJobProgress();
-    if (foo) {
+    const isJobFinished = await this.checkJobProgress();
+    if (isJobFinished) {
       console.log("Finished processing contact ingest");
     }
   }
@@ -493,8 +492,8 @@ export class DemoBeams {
     await this.uploadFile("./leads.csv");
     await this.completeInsertJob();
 
-    const foo = await this.checkJobProgress();
-    if (foo) {
+    const isJobFinished = await this.checkJobProgress();
+    if (isJobFinished) {
       console.log("Finished processing lead ingest");
     }
   }
@@ -530,7 +529,6 @@ const failedResults = async (id) => {
   }
 };
 
-// Foo.releaseTheParrot();
 // const Foo = new DemoBeams();
 // await Foo.loginToSalesforce('aryeh+sf+full+bob@crossbeam.com');
 // await Foo.setupEnvironment('aryeh+sf+fifty@crossbeam.com');

@@ -24,9 +24,17 @@ const oppyCSV = createWriteStream("oppies.csv");
 const stream = format({ headers: true });
 stream.pipe(oppyCSV);
 
-export const createTheOppies = ({ startDate, endDate, userIds }) => {
+function keepBuildingOppies(numWantedOppies, numBuiltOppies) {
+  console.log({numBuiltOppies, numWantedOppies});
+  if (numWantedOppies === null || numBuiltOppies < numWantedOppies) {
+    return true;
+  }
+  return false;
+}
+
+export const createTheOppies = ({ startDate, endDate, userIds, numOppies = null }) => {
+  console.log('foo', {numOppies});
   // Build up account id and names from SF account export
-  userIds;
   let numberOfOppiesCreated = 0;
   const accountIdsAndNames = [];
   parseFile(ingestFileName)
@@ -34,10 +42,10 @@ export const createTheOppies = ({ startDate, endDate, userIds }) => {
     .on("data", (row) => {
       const [ID, NAME] = row;
       const numberOfOpps = faker.number.int({ min: 1, max: 2 });
-      if (ID !== "ID") {
+      if (ID !== "ID" && keepBuildingOppies(numOppies, numberOfOppiesCreated)) {
         numberOfOppiesCreated += numberOfOpps;
         accountIdsAndNames.push(
-          buildOpps(numberOfOpps, NAME, ID, startDate, endDate, userIds)
+          buildAndWriteOpps(numberOfOpps, NAME, ID, startDate, endDate, userIds)
         );
       }
     })
@@ -50,7 +58,7 @@ export const createTheOppies = ({ startDate, endDate, userIds }) => {
 
 
 
-function buildOpps(
+function buildAndWriteOpps(
   amount,
   accountName,
   AccountId,

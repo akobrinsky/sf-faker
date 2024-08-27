@@ -69,7 +69,7 @@ const setupInstance = async () => {
   BeamInstance.setEmailAddress(email);
 
   // go through auth and setup bearer token... etc
-  // await BeamInstance.loginToSalesforce();
+  await BeamInstance.loginToSalesforce();
   await BeamInstance.setupEnvironment();
   // bulkAction = await initialPrompt();
   return await startProcess();

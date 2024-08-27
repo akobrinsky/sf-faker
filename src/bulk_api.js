@@ -416,8 +416,6 @@ export class DemoBeams {
       await this.createAndUploadOppies();
       await this.createAndUploadContacts();
       // await this.createAndUploadLeads();
-
-      await timeout(3000);
     }
   }
 
@@ -435,28 +433,6 @@ export class DemoBeams {
       userIds: this.userIDs,
       numOppies
     });
-
-    // upload 'em
-    await this.createJob("Opportunity");
-    await this.uploadFile("./oppies.csv");
-    await this.completeInsertJob();
-
-    const isJobFinished = await this.checkJobProgress();
-    if (isJobFinished) {
-      console.log("Finished processing opportunity ingest", isJobFinished);
-    }
-  }
-
-  async uploadOppies(start, end, amount) {
-    // // extract userids to map to accounts
-    // await this.createQueryJob(queryAndFileLookup.User.query);
-    // await this.checkJob('User');
-
-    await this.createQueryJob(this.queryAndFileLookup("Account").query);
-    await this.checkJob("Account");
-
-    // write the accounts to csv with mapped user ids
-    createTheOppies(start, end, this.userIDs, amount);
 
     // upload 'em
     await this.createJob("Opportunity");

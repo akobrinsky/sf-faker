@@ -6,10 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-accounts": "node src/create-accounts.js",
-    "build-oppies-and-accounts": "node src/create-oppies.js && node src/create-contacts.js",
-    "bulk": "node src/prompts.js",
-    "foo": "terminal-parrot"
+    "bulk": "node src/prompts.js"
   },
   "author": "Aryeh Kobrinsky",
   "license": "ISC",

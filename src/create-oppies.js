@@ -40,7 +40,7 @@ export const createTheOppies = ({ startDate, endDate, userIds, numOppies = null 
     .on("data", (row) => {
       const [ID, NAME] = row;
       const numberOfOpps = faker.number.int({ min: 1, max: 2 });
-      if (ID !== "ID" && keepBuildingOppies(numOppies, numberOfOppiesCreated)) {
+      if (ID.toUpperCase() !== "ID" && keepBuildingOppies(numOppies, numberOfOppiesCreated)) {
         numberOfOppiesCreated += numberOfOpps;
         accountIdsAndNames.push(
           buildAndWriteOpps(numberOfOpps, NAME, ID, startDate, endDate, userIds)

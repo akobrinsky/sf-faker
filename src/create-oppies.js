@@ -40,7 +40,10 @@ export const createTheOppies = ({ startDate, endDate, userIds, numOppies = null 
     .on("data", (row) => {
       const [ID, NAME] = row;
       const numberOfOpps = faker.number.int({ min: 1, max: 2 });
-      if (ID.toUpperCase() !== "ID" && keepBuildingOppies(numOppies, numberOfOppiesCreated)) {
+
+      const shouldProcessRow = numOppies === null || Math.random() < 0.5;
+
+      if (shouldProcessRow && ID.toUpperCase() !== "ID" && keepBuildingOppies(numOppies, numberOfOppiesCreated)) {
         numberOfOppiesCreated += numberOfOpps;
         accountIdsAndNames.push(
           buildAndWriteOpps(numberOfOpps, NAME, ID, startDate, endDate, userIds)
@@ -127,3 +130,10 @@ function buildAndWriteOpps(
     });
   }
 }
+
+// createTheOppies({
+//   startDate: 1722282831,
+//   endDate: 1730225603,
+//   userIds: ['005Dp000003yyhMIAQ', '005Dp0000021R37IAE', '005Dp000002lI3tIAE'],
+//   numOppies: 80
+// })

@@ -55,7 +55,7 @@ export class DemoBeams {
     const emailAddy = this.email.split("@")[1];
     return {
       User: {
-        query: `SELECT Id FROM User WHERE Email LIKE '%${emailAddy}'`,
+        query: `SELECT Id FROM User WHERE Email LIKE '%${emailAddy}' AND IsActive = TRUE`,
         file: "user-ids.csv",
       },
       Account: {

@@ -25,7 +25,6 @@ const stream = format({ headers: true });
 stream.pipe(oppyCSV);
 
 function keepBuildingOppies(numWantedOppies, numBuiltOppies) {
-  console.log({numBuiltOppies, numWantedOppies});
   if (numWantedOppies === null || numBuiltOppies < numWantedOppies) {
     return true;
   }
@@ -33,7 +32,6 @@ function keepBuildingOppies(numWantedOppies, numBuiltOppies) {
 }
 
 export const createTheOppies = ({ startDate, endDate, userIds, numOppies = null }) => {
-  console.log('foo', {numOppies});
   // Build up account id and names from SF account export
   let numberOfOppiesCreated = 0;
   const accountIdsAndNames = [];
